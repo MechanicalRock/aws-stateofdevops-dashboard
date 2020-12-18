@@ -1,0 +1,10 @@
+coverage/
+.dist/
+.lint/
+node_modules/
+.DS_Store
+.aws-sam/
+.vscode/
+.test/
+!*.js
+!*.yml

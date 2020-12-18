@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Creating all the related resources to generate a State Of DevOps dashboard'
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: mechanicalrock-state-of-devops-dashboard
+    Description: Creating State of DevOps dashboard based on cloudwatch alarms and metrics.
+    Author: Mechanical Rock
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: LICENSE
+    ReadmeUrl: README.md
+    Labels: ['stateofdevops', 'dashboard', 'sdo', 'service-health', 'monitoring','mttr', 'mtbf']
+    HomePageUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
+    SemanticVersion: 1.6.0
+    SourceCodeUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
+
+Globals:
+  Function:
+    Runtime: nodejs12.x
+    Timeout: 60
+    MemorySize: 128
+    Handler: index.handler
+    Tracing: Active
+Resources:
+
+  DynamoStream:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: DynamoStream
+      Events:
+        DynamoDBStream:
+          Type: DynamoDB
+          Properties:
+            Stream:
+              'Fn::GetAtt':
+                - EventStoreDynamoTable
+                - StreamArn
+            StartingPosition: TRIM_HORIZON
+      CodeUri: ./src/dynamoStream
+      Timeout: 60
+      Policies:
+        - CloudWatchPutMetricPolicy: {}
+
+        
+  EventStoreDynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'resourceId'
+          AttributeType: 'S'
+        - AttributeName: 'pipelineName'
+          AttributeType: 'S'
+        - AttributeName: 'bookmarked'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: HASH
+        - AttributeName: 'resourceId'
+          KeyType: 'RANGE'
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      GlobalSecondaryIndexes:
+        - IndexName: 'resourceId-id-index'
+          KeySchema:
+            - AttributeName: 'resourceId'
+              KeyType: HASH
+            - AttributeName: 'id'
+              KeyType: RANGE
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'pipelineName-index'
+          KeySchema:
+            - AttributeName: 'pipelineName'
+              KeyType: HASH
+            - AttributeName: 'bookmarked'
+              KeyType: RANGE
+          Projection:
+            ProjectionType: 'ALL'
