@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rimraf .coverage .nyc_output .test",
     "build": "webpack-cli",
+    "dev": "./node_modules/.bin/tsc --outDir .dist --watch",
     "test": "cross-env NODE_ENV=test jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint '*/**/*.{js,ts,tsx}' -f node_modules/eslint-detailed-reporter/lib/detailed.js -o .lint/index.html",

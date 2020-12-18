@@ -1,18 +1,16 @@
 module.exports = {
-    collectCoverageFrom: ["src/*.{js,jsx,ts,tsx}"],
     coverageThreshold: {
         global: {
-            branches: 100,
-            functions: 100,
-            lines: 100,
-            statements: 100,
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80,
         },
     },
-    collectCoverageFrom: ["**/*.ts?(x)", "**/*.js?(x)"],
+    collectCoverageFrom: ["**/*.ts?(x)", "**/*.js?(x)", "!**/*d.(ts|js)?(x)", "!**/alarmEventStore.(ts|js)?(x)"],
     testMatch: ["**/?(*.)(spec|test).ts?(x)", "**/?(*.)(spec|test).js?(x)", "**/*.steps.ts?(x)"],
     testEnvironment: "node",
     testURL: "http://localhost",
-    // testPathIgnorePatterns: ["src/*.d.{js,jsx,ts,tsx}"],
     roots: ["<rootDir>/test/"],
     transformIgnorePatterns: ["[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$"],
     moduleFileExtensions: ["js", "ts", "tsx", "json", "node"],
