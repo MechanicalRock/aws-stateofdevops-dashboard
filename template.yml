@@ -15,19 +15,60 @@ Metadata:
     SemanticVersion: 1.6.0
     SourceCodeUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
 
+Parameters:
+  PermissionsBoundary:
+    Description: "An optional permissions boundary to apply to all roles"
+    Type: String
+    ConstraintDescription: Must match a valid ARN of an IAM policy for the permission boundary
+    AllowedPattern: "^$|arn:aws:iam::\\d{12}:policy/[a-zA-Z\\-]+$"
+    Default: ""
+  SanitisePattern:
+    Description: 'comma delimited list of patterns to use to sanitise pipeline names.  Strips the pipeline name to characters before the matching patter.  Example pipeline with name "foo-pipeline123" and sanitise pattern "-pipeline" will be reported as "foo"'
+    Type: String
+    Default: "-pipeline"
+    AllowedPattern: '[a-zA-Z_\\-]+(,[a-zA-Z_\\-]+)*'
+
 Globals:
   Function:
     Runtime: nodejs12.x
     Timeout: 60
     MemorySize: 128
-    Handler: index.handler
     Tracing: Active
+
+Conditions:
+  HasPermissionBoundary: !Not [!Equals [!Ref PermissionsBoundary, ""]]
+
 Resources:
+
+  DescribeAlarmPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: cloudwatch:DescribeAlarmHistory
+            Resource: '*'
+
+  ListPipelinePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: codepipeline:ListPipelines
+            Resource: '*'
 
   DynamoStream:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: DynamoStream
+      Handler: index.handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventStoreDynamoTable
+      ReservedConcurrentExecutions: 1
       Events:
         DynamoDBStream:
           Type: DynamoDB
@@ -41,6 +82,39 @@ Resources:
       Timeout: 60
       Policies:
         - CloudWatchPutMetricPolicy: {}
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventStoreDynamoTable
+      PermissionsBoundary:
+        !If [HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+
+
+  StateChangeHandler:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Capturing all cloudwatch alarm State changes in dynamo
+      Handler: stateChangeHandler.handler
+      Runtime: nodejs12.x
+      CodeUri: .build/src
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventStoreDynamoTable
+          SANITISE_PATTERNS: !Ref SanitisePattern
+      Events:
+        cloudwatchEvent:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+                - 'aws.cloudwatch'
+              detail-type:
+                - 'CloudWatch Alarm State Change'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventStoreDynamoTable
+        - !Ref ListPipelinePolicy
+        - !Ref DescribeAlarmPolicy
+      PermissionsBoundary:
+        !If [HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
         
   EventStoreDynamoTable:
