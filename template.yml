@@ -41,6 +41,14 @@ Conditions:
 
 Resources:
 
+  SDOAppNames:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: state-of-devops/app-names
+      Type: StringList
+      Value: sdo-default-app-name
+      Description: comma separated list of app names deployed in your aws account
+
   DescribeAlarmPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
