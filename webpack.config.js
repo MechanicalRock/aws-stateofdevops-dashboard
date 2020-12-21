@@ -4,7 +4,6 @@ const CopyPlugin = require("copy-webpack-plugin");
 module.exports = {
     entry: {
         DynamoStream: "./src/dynamoStream.ts",
-        // StateChangeCapture: "./src/stateChangeCapture.ts",
         StateChangeHandler: "./src/stateChangeHandler.ts",
     },
     output: {
