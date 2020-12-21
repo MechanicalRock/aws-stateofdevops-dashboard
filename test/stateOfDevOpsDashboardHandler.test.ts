@@ -9,7 +9,6 @@ var expect = chai.expect;
 var sinon = require('sinon');
 
 var index = require('../src/index')
-// var index = require('../../src/index');
 
 describe('stateOfDevOpsDashboardHandler', () => {
     let listPipelineStub;
