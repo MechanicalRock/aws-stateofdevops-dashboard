@@ -1,0 +1,478 @@
+{
+    "start": "-P42D",
+    "widgets": [
+        {
+            "type": "text",
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 4,
+            "properties": {
+                "markdown": "### Deployment Frequency\nHow often code is deployed **to production**.  **Higher = better**.\n\nDeploying changes more frequently, in smaller increments, correlates with success.\n\nElite performers deploy multiple times per day."
+            }
+        },
+        {
+            "type": "text",
+            "x": 4,
+            "y": 0,
+            "width": 4,
+            "height": 4,
+            "properties": {
+                "markdown": "### Lead Time\nTime from code commit to running in production, including rework.  **Lower = better**.\n\nReducing lead times reduces cost to value, and improves agility.\n\nElite performers have lead times less than 1 day."
+            }
+        },
+        {
+            "type": "text",
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 4,
+            "properties": {
+                "markdown": "### MTBF\nMean time between service failures.  **Higher = better**\n\nA stable service improves *Lead Time* and *Deployment Frequency*.\n\nAnd unstable service suggests systemic quality issues that need to be addressed."
+            }
+        },
+        {
+            "type": "text",
+            "x": 12,
+            "y": 0,
+            "width": 4,
+            "height": 4,
+            "properties": {
+                "markdown": "### MTTR\nMean time to fix a failing service.  **Lower = better**\n\nHigh MTTR negatively effects *Lead Time* and *Deployment Frequency*.\n\nWhen the service fails, the team should \"stop the line\" and swarm to fix it."
+            }
+        },
+        {
+            "type": "text",
+            "x": 16,
+            "y": 0,
+            "width": 8,
+            "height": 4,
+            "properties": {
+                "markdown": "### Interpreting the Graphs\nEach metric is graphed on a daily basis.  There may be gaps in the data if the pipeline did not run.\n\nCharts show the 30-day trend, with p10,p50 and p90 trends. A wide range between p10 + p90 indicates a large variation and outliers. This indicates the metric is uncontrolled.  Work to narrow the variance for improved consistency.\n\nGraphs with annotations show performance in relation to the DORA State of DevOps report.  The green area indicates elite performers; yellow high performers"
+            }
+        },
+        {
+            "type": "metric",
+            "x": 0,
+            "y": 4,
+            "width": 12,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [
+                        {
+                            "expression": "FILL(m2,0)",
+                            "id": "e2",
+                            "period": 86400,
+                            "yAxis": "left",
+                            "color": "#ff7f0e",
+                            "label": "Deployment Frequency"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "m6/PERIOD(m6) * 86400",
+                            "label": "Average (30d)",
+                            "id": "e1",
+                            "color": "#2ca02c"
+                        }
+                    ],
+                    [
+                        "Pipeline",
+                        "SuccessCount",
+                        "PipelineName",
+                        "flaky-service-pipeline",
+                        {
+                            "period": 86400,
+                            "stat": "Sum",
+                            "id": "m2",
+                            "visible": false,
+                            "label": "Deployments"
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "period": 2592000,
+                            "stat": "Sum",
+                            "id": "m6",
+                            "label": "Deployment Freq (30d)",
+                            "visible": false
+                        }
+                    ]
+                ],
+                "view": "timeSeries",
+                "title": "flaky-service-pipeline Frequency",
+                "period": 2592000,
+                "stacked": false,
+                "yAxis": {
+                    "left": {
+                        "label": "deployments / day",
+                        "showUnits": false,
+                        "min": 0
+                    },
+                    "right": {
+                        "showUnits": true
+                    }
+                },
+                "annotations": {
+                    "horizontal": [
+                        {
+                            "color": "#98df8a",
+                            "label": "daily",
+                            "value": 1,
+                            "fill": "above"
+                        },
+                        [
+                            {
+                                "color": "#dbdb8d",
+                                "label": "multiple per week",
+                                "value": 0.25
+                            },
+                            {
+                                "value": 1,
+                                "label": "daily"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "type": "metric",
+            "x": 12,
+            "y": 4,
+            "width": 12,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [
+                        {
+                            "expression": "m1/60",
+                            "label": "Lead Time",
+                            "id": "e2",
+                            "period": 86400,
+                            "yAxis": "left",
+                            "color": "#ff7f0e"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m4,AVG(m4))/60",
+                            "label": "Lead Time (30d - p90)",
+                            "id": "e3",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m5,AVG(m5))/60",
+                            "label": "Lead Time (30d - p10)",
+                            "id": "e4",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m3,AVG(m3))/60",
+                            "label": "Lead Time (30d - p50)",
+                            "id": "e5",
+                            "color": "#2ca02c"
+                        }
+                    ],
+                    [
+                        "Pipeline",
+                        "DeliveryLeadTime",
+                        "PipelineName",
+                        "flaky-service-pipeline",
+                        {
+                            "label": "Lead Time",
+                            "stat": "Average",
+                            "color": "#1f77b4",
+                            "period": 86400,
+                            "id": "m1",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "Average",
+                            "period": 2592000,
+                            "id": "m3",
+                            "label": "Lead Time (30d)",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p90",
+                            "period": 2592000,
+                            "id": "m4",
+                            "visible": false,
+                            "label": "Lead Time (p90)"
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p10",
+                            "period": 2592000,
+                            "id": "m5",
+                            "visible": false,
+                            "label": "Lead Time (p10)"
+                        }
+                    ]
+                ],
+                "view": "timeSeries",
+                "title": "flaky-service-pipeline Lead Time",
+                "period": 2592000,
+                "stacked": false,
+                "yAxis": {
+                    "left": {
+                        "min": 0,
+                        "label": "minutes",
+                        "showUnits": false
+                    },
+                    "right": {
+                        "showUnits": true
+                    }
+                },
+                "annotations": {
+                    "horizontal": [
+                        {
+                            "color": "#98df8a",
+                            "label": "< 1 hour",
+                            "value": 60,
+                            "fill": "below"
+                        },
+                        [
+                            {
+                                "color": "#dbdb8d",
+                                "value": 60,
+                                "label": "1 hour"
+                            },
+                            {
+                                "label": "< 0.5 day",
+                                "value": 720
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "type": "metric",
+            "x": 0,
+            "y": 10,
+            "width": 12,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [
+                        {
+                            "expression": "m1/86400",
+                            "label": "MTBF",
+                            "id": "e2",
+                            "period": 86400,
+                            "yAxis": "left",
+                            "color": "#ff7f0e"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m4,AVG(m4))/86400",
+                            "label": "MTBF (30d - p90)",
+                            "id": "e3",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m5,AVG(m5))/86400",
+                            "label": "MTBF (30d - p10)",
+                            "id": "e4",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m3,AVG(m3))/86400",
+                            "label": "MTBF (30d - p50)",
+                            "id": "e5",
+                            "color": "#2ca02c"
+                        }
+                    ],
+                    [
+                        "Operations",
+                        "MTBF",
+                        "service",
+                        "flaky-service-service-health",
+                        {
+                            "label": "MTBF",
+                            "stat": "Average",
+                            "color": "#1f77b4",
+                            "period": 86400,
+                            "id": "m1",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "Average",
+                            "period": 2592000,
+                            "id": "m3",
+                            "label": "MTBF (30d)",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p90",
+                            "period": 2592000,
+                            "id": "m4",
+                            "visible": false,
+                            "label": "MTBF (p90)"
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p10",
+                            "period": 2592000,
+                            "id": "m5",
+                            "visible": false,
+                            "label": "MTBF (p10)"
+                        }
+                    ]
+                ],
+                "view": "timeSeries",
+                "title": "flaky-service-pipeline MTBF",
+                "period": 2592000,
+                "stacked": false,
+                "yAxis": {
+                    "left": {
+                        "min": 0,
+                        "label": "days",
+                        "showUnits": false
+                    },
+                    "right": {
+                        "showUnits": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "metric",
+            "x": 12,
+            "y": 10,
+            "width": 12,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [
+                        {
+                            "expression": "m1/3600",
+                            "label": "MTTR",
+                            "id": "e2",
+                            "period": 86400,
+                            "yAxis": "left",
+                            "color": "#ff7f0e"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m4,AVG(m4))/3600",
+                            "label": "MTTR (30d - p90)",
+                            "id": "e3",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m5,AVG(m5))/3600",
+                            "label": "MTTR (30d - p10)",
+                            "id": "e4",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m3,AVG(m3))/3600",
+                            "label": "MTTR (30d - p50)",
+                            "id": "e5",
+                            "color": "#2ca02c"
+                        }
+                    ],
+                    [
+                        "Operations",
+                        "MTTR",
+                        "service",
+                        "flaky-service-service-health",
+                        {
+                            "label": "MTTR",
+                            "stat": "Average",
+                            "color": "#1f77b4",
+                            "period": 86400,
+                            "id": "m1",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "Average",
+                            "period": 2592000,
+                            "id": "m3",
+                            "label": "MTTR (30d)",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p90",
+                            "period": 2592000,
+                            "id": "m4",
+                            "visible": false,
+                            "label": "MTTR (p90)"
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p10",
+                            "period": 2592000,
+                            "id": "m5",
+                            "visible": false,
+                            "label": "MTTR (p10)"
+                        }
+                    ]
+                ],
+                "view": "timeSeries",
+                "title": "flaky-service-pipeline MTTR",
+                "period": 2592000,
+                "stacked": false,
+                "yAxis": {
+                    "left": {
+                        "min": 0,
+                        "label": "hours",
+                        "showUnits": false
+                    },
+                    "right": {
+                        "showUnits": true
+                    }
+                }
+            }
+        }
+    ]
+}
