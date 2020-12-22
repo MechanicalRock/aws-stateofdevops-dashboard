@@ -1,5 +1,5 @@
 import { Handler } from "aws-lambda";
-import { StateOfDevOpsDashboardGenerator } from "./lib";
+import { StateOfDevOpsDashboardGenerator } from "./stateOfDevopsDashboardGenerator";
 import { CloudWatch, CodePipeline } from "aws-sdk";
 
 export const handler: Handler = async (event) => {
