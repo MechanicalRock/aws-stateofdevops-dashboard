@@ -12,7 +12,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ['stateofdevops', 'dashboard', 'sdo', 'service-health', 'monitoring','mttr', 'mtbf']
     HomePageUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
-    SemanticVersion: 1.6.0
+    SemanticVersion: 1.0.1
     SourceCodeUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
 
 Parameters:
@@ -32,6 +32,7 @@ Globals:
   Function:
     Runtime: nodejs12.x
     Timeout: 60
+    Handler: index.handler
     MemorySize: 128
     Tracing: Active
 
@@ -39,6 +40,14 @@ Conditions:
   HasPermissionBoundary: !Not [!Equals [!Ref PermissionsBoundary, ""]]
 
 Resources:
+
+  SDOAppNames:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: state-of-devops/app-names
+      Type: StringList
+      Value: sdo-default-app-name
+      Description: comma separated list of app names deployed in your aws account
 
   DescribeAlarmPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -63,8 +72,6 @@ Resources:
   DynamoStream:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: DynamoStream
-      Handler: index.handler
       Environment:
         Variables:
           TABLE_NAME: !Ref EventStoreDynamoTable
@@ -92,9 +99,8 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       Description: Capturing all cloudwatch alarm State changes in dynamo
-      Handler: stateChangeHandler.handler
       Runtime: nodejs12.x
-      CodeUri: .build/src
+      CodeUri: ./src/StateChangeHandler
       Environment:
         Variables:
           TABLE_NAME: !Ref EventStoreDynamoTable

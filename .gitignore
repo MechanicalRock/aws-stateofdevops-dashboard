@@ -6,6 +6,7 @@ node_modules/
 .aws-sam/
 .vscode/
 .test/
+*.local
 !*.js
 
 !*.yml
