@@ -12,7 +12,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ['stateofdevops', 'dashboard', 'sdo', 'service-health', 'monitoring','mttr', 'mtbf']
     HomePageUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
-    SemanticVersion: 1.0.1
+    SemanticVersion: 1.0.5
     SourceCodeUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
 
 Parameters:
@@ -44,9 +44,9 @@ Resources:
   SDOAppNames:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: state-of-devops/app-names
+      Name: "/state-of-devops/app-names"
       Type: StringList
-      Value: sdo-default-app-name
+      Value: "sod-default-app-name"
       Description: comma separated list of app names deployed in your aws account
 
   DescribeAlarmPolicy:
@@ -94,6 +94,32 @@ Resources:
       PermissionsBoundary:
         !If [HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
+
+  StateOfDevOpsTrendGenerator:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          SANITISE_PATTERNS: !Ref SanitisePattern
+          TABLE_NAME: !Ref EventStoreDynamoTable
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(*/5 * * * ? *)
+      CodeUri: src/StateOfDevopsDashboard
+      Timeout: 60
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: 
+                - cloudwatch:GetDashboard
+                - cloudwatch:ListDashboards
+                - cloudwatch:PutDashboard
+                - codepipeline:ListPipelines
+              Resource: "*"
+      PermissionsBoundary:
+        !If [HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
   StateChangeHandler:
     Type: 'AWS::Serverless::Function'

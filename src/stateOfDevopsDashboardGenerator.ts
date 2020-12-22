@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 import { sanitizePipelineName } from "./stateChangeCapture";
 
 const ANNOTATION_ELITE_COLOUR = "#98df8a";
@@ -430,7 +431,7 @@ export class StateOfDevOpsDashboardGenerator {
                 description:
                     "Mean time to fix a failing service.  **Lower = better**\n\n" +
                     "High MTTR negatively effects *Lead Time* and *Deployment Frequency*.\n\n" +
-                    "When the service fails, the team should \"stop the line\" and swarm to fix it.",
+                    'When the service fails, the team should "stop the line" and swarm to fix it.',
             },
             {
                 title: "Interpreting the Graphs",
