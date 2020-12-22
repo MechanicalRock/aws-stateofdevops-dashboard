@@ -46,3 +46,4 @@ export function itemHasState(historyDataStr: string, state: AlarmState): boolean
     const newState = getState(historyDataStr);
     return newState === state.toString();
 }
+
