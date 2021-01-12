@@ -12,7 +12,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ['stateofdevops', 'dashboard', 'sdo', 'service-health', 'monitoring','mttr', 'mtbf']
     HomePageUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
-    SemanticVersion: 1.0.5
+    SemanticVersion: 1.0.6
     SourceCodeUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
 
 Parameters:
@@ -94,6 +94,30 @@ Resources:
       PermissionsBoundary:
         !If [HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
+  ServiceHealthAlarmGenerator:
+    Type: AWS::Serverless::Function
+    Properties:
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 5 * * *)
+      CodeUri: src/ServiceHealthAlarmGenerator
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: 
+                - cloudwatch:DescribeAlarms
+                - cloudwatch:PutMetricAlarm
+              Resource: "*"
+            - Effect: Allow
+              Action: 
+                - ssm:GetParameters
+                - ssm:GetParameter
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/state-of-devops/app-names"
+      PermissionsBoundary:
+        !If [HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
   StateOfDevOpsTrendGenerator:
     Type: AWS::Serverless::Function
