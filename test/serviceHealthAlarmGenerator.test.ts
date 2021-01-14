@@ -2,6 +2,7 @@ import * as AWSMock from "aws-sdk-mock";
 import { handler } from "../src/serviceHealthAlarmGenerator";
 
 let cloudWatchDescribeAlarmSpy;
+let SSMGetParameterSpy;
 let cloudWatchPutAlarmSpy;
 describe("serviceHealthAlarmGenerator", () => {
     const event = {
@@ -16,6 +17,23 @@ describe("serviceHealthAlarmGenerator", () => {
     };
     describe("service health alarms exist", () => {
         beforeEach(() => {
+            SSMGetParameterSpy = jest.fn().mockReturnValue({
+                Parameters: [
+                    {
+                        Name: "/state-of-devops/app-names",
+                        Type: "StringList",
+                        Value: "app1,app2",
+                        Version: 3,
+                        LastModifiedDate: "2021-01-14T00:27:16.013Z",
+                        ARN: "arn:aws:ssm:ap-southeast-2:319524717526:parameter/state-of-devops/app-names",
+                        DataType: "text",
+                    },
+                ],
+                InvalidParameters: [],
+            });
+            AWSMock.mock("SSM", "getParameters", (params, callback) => {
+                callback(null, SSMGetParameterSpy(params));
+            });
             cloudWatchDescribeAlarmSpy = jest.fn().mockReturnValue({
                 ResponseMetadata: { RequestId: "4750a231-6aa0-40ec-a917-5b6362e1ae5c" },
                 CompositeAlarms: [],
@@ -58,6 +76,7 @@ describe("serviceHealthAlarmGenerator", () => {
         afterEach(() => {
             AWSMock.restore();
             cloudWatchDescribeAlarmSpy.mockRestore();
+            SSMGetParameterSpy.mockRestore();
         });
         it("should not create the alarm since the alarm exists", async () => {
             await handler(event);
@@ -68,6 +87,23 @@ describe("serviceHealthAlarmGenerator", () => {
 
     describe("service health alarms does not exist", () => {
         beforeEach(() => {
+            SSMGetParameterSpy = jest.fn().mockReturnValue({
+                Parameters: [
+                    {
+                        Name: "/state-of-devops/app-names",
+                        Type: "StringList",
+                        Value: "app1,app2",
+                        Version: 3,
+                        LastModifiedDate: "2021-01-14T00:27:16.013Z",
+                        ARN: "arn:aws:ssm:ap-southeast-2:319524717526:parameter/state-of-devops/app-names",
+                        DataType: "text",
+                    },
+                ],
+                InvalidParameters: [],
+            });
+            AWSMock.mock("SSM", "getParameters", (params, callback) => {
+                callback(null, SSMGetParameterSpy(params));
+            });
             cloudWatchPutAlarmSpy = jest.fn().mockReturnValue({});
             AWSMock.mock("CloudWatch", "putMetricAlarm", (params, callback) => {
                 callback(null, cloudWatchPutAlarmSpy(params));
@@ -76,6 +112,7 @@ describe("serviceHealthAlarmGenerator", () => {
         afterEach(() => {
             AWSMock.restore();
             cloudWatchDescribeAlarmSpy.mockRestore();
+            SSMGetParameterSpy.mockRestore();
         });
         it("should create the alarm when Metric data is empty in describe alarm ", async () => {
             cloudWatchDescribeAlarmSpy = jest.fn().mockReturnValue({

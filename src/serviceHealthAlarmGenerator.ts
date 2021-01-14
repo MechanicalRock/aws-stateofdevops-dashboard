@@ -1,8 +1,12 @@
-import { CloudWatch, config } from "aws-sdk";
+import { CloudWatch, config, SSM } from "aws-sdk";
+import { getAppNamesFromSSM } from "./utils";
 
 config.region = "ap-southeast-2";
 export async function handler(event: any): Promise<void> {
     const appName = "test";
+    const ssm = new SSM();
+    const appNames = await getAppNamesFromSSM(ssm);
+    console.log("retrieved appnames are: ", appNames);
     const cloudwatch = new CloudWatch();
     const params: CloudWatch.DescribeAlarmsInput = {
         AlarmNames: [`${appName}-service-health`],
