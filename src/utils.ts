@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DescribeAlarmHistoryOutput } from "aws-sdk/clients/cloudwatch";
 import { AlarmState, IHistoryDataType } from "./interface.d";
+import { SSM } from "aws-sdk";
 
 export function sortItemsByResourceId(items: AWS.DynamoDB.DocumentClient.QueryOutput): any {
     if (items.Items) {
@@ -47,3 +48,20 @@ export function itemHasState(historyDataStr: string, state: AlarmState): boolean
     return newState === state.toString();
 }
 
+export async function getAppNamesFromSSM(ssm: SSM): Promise<string[]> {
+    const ssmParams: SSM.GetParametersRequest = {
+        Names: ["/state-of-devops/app-names"],
+        WithDecryption: false,
+    };
+    let appNames: string[] = [];
+    const ssmResult = await ssm.getParameters(ssmParams).promise();
+    console.log("SSM result was: ", JSON.stringify(ssmResult));
+    if (ssmResult && ssmResult.Parameters && ssmResult.Parameters.length > 0 && ssmResult.Parameters[0].Value) {
+        appNames = ssmResult.Parameters[0].Value.split(",");
+        if (appNames.length === 1 && appNames[0] === "sdo-default-app-name") {
+            appNames = [];
+        }
+    }
+    console.log("appnames: ", appNames);
+    return appNames;
+}

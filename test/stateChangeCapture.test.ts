@@ -23,21 +23,6 @@ describe("stateChangeCapture", () => {
     });
 
     describe("sanitizePipelineName", () => {
-        // const examples = [
-        //     "foo-pipeline",
-        //     "foo-pipeline-123",
-        //     "foo_pipeline",
-        //     "foo_pipeline397654",
-        //     "foo-codePipeline",
-        //     "foo-codePipeline0987655",
-        //     "foo_codePipeline",
-        //     "foo_codePipeline876tghujn",
-        //     "foo-my-pipeline",
-        //     "foo-my-pipeline1234345jkdk",
-        //     "foo_cnf-pipeline1234345jkdk",
-        //     "foo_cnf_pipeline1234345jkdk",
-        // ];
-
         describe("no naming convention defined", () => {
             beforeEach(() => {
                 delete process.env.SANITISE_PATTERNS;

@@ -6,6 +6,7 @@ module.exports = {
         DynamoStream: "./src/dynamoStream.ts",
         StateChangeHandler: "./src/stateChangeHandler.ts",
         StateOfDevopsDashboard: "./src/stateOfDevopsDashboardHandler.ts",
+        ServiceHealthAlarmGenerator: "./src/serviceHealthAlarmGenerator.ts",
     },
     output: {
         filename: "src/[name]/index.js",
