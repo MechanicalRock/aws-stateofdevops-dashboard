@@ -5,7 +5,6 @@ import { getAppNamesFromSSM } from "../src/utils";
 let SSMGetParameterSpy;
 describe("Utils", () => {
     describe("SSM success result", () => {
-        // beforeEach(() => {});
         afterEach(() => {
             AWSMock.restore();
             SSMGetParameterSpy.mockRestore();
