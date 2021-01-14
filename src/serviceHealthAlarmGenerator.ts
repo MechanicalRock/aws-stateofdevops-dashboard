@@ -30,7 +30,9 @@ async function findAppNamesThatDoNotMatchServiceHealthAlarms(
         AlarmNames: [],
     };
     for (let i = 0; i < appNames.length; i++) {
-        params.AlarmNames?.push(`${appNames[i]}-service-health`);
+        if (params.AlarmNames) {
+            params.AlarmNames.push(`${appNames[i]}-service-health`);
+        }
     }
     try {
         const response = await cloudwatch.describeAlarms(params).promise();
