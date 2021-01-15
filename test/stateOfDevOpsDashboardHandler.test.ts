@@ -1,23 +1,26 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 "use strict";
-import awsSdk from "aws-sdk";
+import * as AWSMock from "aws-sdk-mock";
+import awsSdk, { SSM } from "aws-sdk";
 import LambdaTester from "lambda-tester";
 import chai from "chai";
 import sinonChai from "sinon-chai";
 chai.use(sinonChai);
 const expect = chai.expect;
 import sinon from "sinon";
+import { getAppNamesFromSSM } from "../src/utils";
 
 const index = require("../src/stateOfDevopsDashboardHandler");
 
 describe("stateOfDevOpsDashboardHandler", () => {
     let listPipelineStub;
     let putDashboardSpy;
+    let SSMGetParameterSpy;
     const sandbox = sinon.createSandbox();
     function generatePipelines(n: number) {
         return [...Array(n).keys()].map((idx) => {
             return {
-                name: `service-${idx}-pipeline`,
+                name: `app1-service-${idx}-pipeline`,
                 version: 1,
                 created: "2019-12-27T07:37:13.986Z",
                 updated: "2019-12-27T07:37:13.986Z",
@@ -33,7 +36,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             pipelines: {
                 pipelines: [
                     {
-                        name: "flaky-service-pipeline",
+                        name: "app1-flaky-service-pipeline",
                         version: 1,
                         created: "2019-12-27T07:37:13.986Z",
                         updated: "2019-12-27T07:37:13.986Z",
@@ -58,13 +61,25 @@ describe("stateOfDevOpsDashboardHandler", () => {
             pipelines: {
                 pipelines: [
                     {
-                        name: "flaky-service-pipeline",
+                        name: "app1-flaky-service-pipeline",
                         version: 1,
                         created: "2019-12-27T07:37:13.986Z",
                         updated: "2019-12-27T07:37:13.986Z",
                     },
                     {
-                        name: "stable-service-pipeline",
+                        name: "app2-stable-service-pipeline",
+                        version: 1,
+                        created: "2019-12-27T07:37:13.986Z",
+                        updated: "2019-12-27T07:37:13.986Z",
+                    },
+                    {
+                        name: "PipelineWithoutParameterStoreMatch1-stable-service-pipeline",
+                        version: 1,
+                        created: "2019-12-27T07:37:13.986Z",
+                        updated: "2019-12-27T07:37:13.986Z",
+                    },
+                    {
+                        name: "PipelineWithoutParameterStoreMatch2-stable-service-pipeline",
                         version: 1,
                         created: "2019-12-27T07:37:13.986Z",
                         updated: "2019-12-27T07:37:13.986Z",
@@ -115,15 +130,30 @@ describe("stateOfDevOpsDashboardHandler", () => {
                         cb(null, scenario.pipelines);
                     },
                 };
-                sandbox.stub(awsSdk, "CodePipeline").returns(listPipelineStub);
 
+                sandbox.stub(awsSdk, "CodePipeline").returns(listPipelineStub);
                 sandbox.stub(awsSdk, "CloudWatch").returns({
                     putDashboard: putDashboardSpy,
                 });
-
+                SSMGetParameterSpy = jest.fn().mockReturnValue({
+                    Parameters: [
+                        {
+                            Name: "/state-of-devops/app-names",
+                            Type: "StringList",
+                            Value: "app1,app2",
+                            Version: 3,
+                            LastModifiedDate: "2021-01-14T00:27:16.013Z",
+                            ARN: "arn:aws:ssm:ap-southeast-2:319524717526:parameter/state-of-devops/app-names",
+                            DataType: "text",
+                        },
+                    ],
+                    InvalidParameters: [],
+                });
+                AWSMock.mock("SSM", "getParameters", (params, callback) => {
+                    callback(null, SSMGetParameterSpy(params));
+                });
                 awsSdk.config.region = "ap-southeast-2";
             });
-
             afterEach(() => {
                 sandbox.restore();
             });
@@ -205,7 +235,9 @@ describe("stateOfDevOpsDashboardHandler", () => {
                         });
                 });
 
-                it("For each Pipeline there should be two pipeline metrics and two service health metrics", () => {
+                it("For each Pipeline there should be two pipeline metrics and two service health metrics", async () => {
+                    const ssm = new SSM();
+                    const result = await getAppNamesFromSSM(ssm);
                     return LambdaTester(index.handler)
                         .event(scenario.event)
                         .expectResult((result, additional) => {
@@ -214,7 +246,8 @@ describe("stateOfDevOpsDashboardHandler", () => {
 
                             const pipelineNames = [...new Set(scenario.pipelines.pipelines.map((m) => m.name))];
                             pipelineNames.forEach((name, idx) => {
-                                const startIdx = idx * widgetsPerPipeline;
+                                if (name.includes(result))
+                                {const startIdx = idx * widgetsPerPipeline;
                                 const widgetsForPipeline = metricWidgets.slice(startIdx, startIdx + widgetsPerPipeline);
                                 let pipelineMetricsCounter = 0;
                                 let serviceHealthMetricsCounter = 0;
@@ -225,9 +258,10 @@ describe("stateOfDevOpsDashboardHandler", () => {
                                     if (JSON.stringify(widget.properties.metrics).includes("-service-health")) {
                                         serviceHealthMetricsCounter = serviceHealthMetricsCounter + 1;
                                     }
+
                                 });
                                 expect(pipelineMetricsCounter).to.equal(2);
-                                expect(serviceHealthMetricsCounter).to.equal(2);
+                                expect(serviceHealthMetricsCounter).to.equal(2);}
                             });
                         });
                 });

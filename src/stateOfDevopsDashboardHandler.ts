@@ -1,6 +1,6 @@
 import { Handler } from "aws-lambda";
 import { StateOfDevOpsDashboardGenerator } from "./stateOfDevopsDashboardGenerator";
-import { CloudWatch, CodePipeline } from "aws-sdk";
+import { CloudWatch, CodePipeline, SSM } from "aws-sdk";
 
 export const handler: Handler = async (event) => {
     const statePromise = Promise.resolve({
@@ -8,6 +8,7 @@ export const handler: Handler = async (event) => {
         region: process.env["AWS_REGION"],
         cloudwatch: new CloudWatch(),
         codepipeline: new CodePipeline(),
+        ssm: new SSM(),
     });
 
     await new StateOfDevOpsDashboardGenerator().run(statePromise);

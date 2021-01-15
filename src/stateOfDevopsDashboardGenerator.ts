@@ -1,6 +1,6 @@
 /* eslint-disable quotes */
 import { sanitizePipelineName } from "./stateChangeCapture";
-
+import { getAppNamesFromSSM } from './utils';
 const ANNOTATION_ELITE_COLOUR = "#98df8a";
 const ANNOTATION_HIGH_COLOUR = "#dbdb8d";
 const MEAN_COLOUR = "#2ca02c";
@@ -372,7 +372,10 @@ export class StateOfDevOpsDashboardGenerator {
         return state;
     }
 
-    getPipelines(state: any) {
+    async getPipelines(state: any) {
+        const appNames = await getAppNamesFromSSM(state.ssm);
+        console.log("retrieved appnames are: ", appNames);
+        if (!appNames || appNames.length === 0) return;
         return new Promise(function (resolve: any, reject: any) {
             state.codepipeline.listPipelines(function (err: any, data: any) {
                 if (err) {
@@ -382,7 +385,14 @@ export class StateOfDevOpsDashboardGenerator {
                 if (data === null) {
                     resolve(state);
                 } else {
-                    state.pipelineNames = data.pipelines.map((m: any) => m.name);
+                    state.pipelineNames = data.pipelines.map((m: any) => {
+
+                        if (appNames.some(substring => m.name.includes(substring))) { return m.name }
+
+                    })
+                    state.pipelineNames = state.pipelineNames.filter(function (element: any) {
+                        return element !== undefined;
+                    });
                     resolve(state);
                 }
             });

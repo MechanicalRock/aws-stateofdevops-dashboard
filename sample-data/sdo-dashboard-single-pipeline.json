@@ -81,7 +81,7 @@
                         "Pipeline",
                         "SuccessCount",
                         "PipelineName",
-                        "flaky-service-pipeline",
+                        "app1-flaky-service-pipeline",
                         {
                             "period": 86400,
                             "stat": "Sum",
@@ -102,7 +102,7 @@
                     ]
                 ],
                 "view": "timeSeries",
-                "title": "flaky-service-pipeline Frequency",
+                "title": "app1-flaky-service-pipeline Frequency",
                 "period": 2592000,
                 "stacked": false,
                 "yAxis": {
@@ -186,7 +186,7 @@
                         "Pipeline",
                         "DeliveryLeadTime",
                         "PipelineName",
-                        "flaky-service-pipeline",
+                        "app1-flaky-service-pipeline",
                         {
                             "label": "Lead Time",
                             "stat": "Average",
@@ -228,7 +228,7 @@
                     ]
                 ],
                 "view": "timeSeries",
-                "title": "flaky-service-pipeline Lead Time",
+                "title": "app1-flaky-service-pipeline Lead Time",
                 "period": 2592000,
                 "stacked": false,
                 "yAxis": {
@@ -312,7 +312,7 @@
                         "Operations",
                         "MTBF",
                         "service",
-                        "flaky-service-service-health",
+                        "app1-flaky-service-service-health",
                         {
                             "label": "MTBF",
                             "stat": "Average",
@@ -354,7 +354,7 @@
                     ]
                 ],
                 "view": "timeSeries",
-                "title": "flaky-service-pipeline MTBF",
+                "title": "app1-flaky-service-pipeline MTBF",
                 "period": 2592000,
                 "stacked": false,
                 "yAxis": {
@@ -417,7 +417,7 @@
                         "Operations",
                         "MTTR",
                         "service",
-                        "flaky-service-service-health",
+                        "app1-flaky-service-service-health",
                         {
                             "label": "MTTR",
                             "stat": "Average",
@@ -459,7 +459,7 @@
                     ]
                 ],
                 "view": "timeSeries",
-                "title": "flaky-service-pipeline MTTR",
+                "title": "app1-flaky-service-pipeline MTTR",
                 "period": 2592000,
                 "stacked": false,
                 "yAxis": {
