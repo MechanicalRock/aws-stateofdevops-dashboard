@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 "use strict";
 import * as AWSMock from "aws-sdk-mock";
-import awsSdk, { SSM } from "aws-sdk";
+import awsSdk from "aws-sdk";
 import LambdaTester from "lambda-tester";
 import chai from "chai";
 import sinonChai from "sinon-chai";
@@ -33,6 +33,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             description: "single pipeline",
             dashboard: "../sample-data/sdo-dashboard-single-pipeline",
             uniquePipelines: 1,
+            matchedPipelines: 1,
             pipelines: {
                 pipelines: [
                     {
@@ -57,11 +58,24 @@ describe("stateOfDevOpsDashboardHandler", () => {
         {
             description: "multiple pipeline",
             dashboard: "../sample-data/sdo-dashboard-multiple-pipelines",
-            uniquePipelines: 2,
+            uniquePipelines: 6,
+            matchedPipelines: 4,
             pipelines: {
                 pipelines: [
                     {
                         name: "app1-flaky-service-pipeline",
+                        version: 1,
+                        created: "2019-12-27T07:37:13.986Z",
+                        updated: "2019-12-27T07:37:13.986Z",
+                    },
+                    {
+                        name: "flaky-app1-service-pipeline",
+                        version: 1,
+                        created: "2019-12-27T07:37:13.986Z",
+                        updated: "2019-12-27T07:37:13.986Z",
+                    },
+                    {
+                        name: "flaky-service-pipeline-app1",
                         version: 1,
                         created: "2019-12-27T07:37:13.986Z",
                         updated: "2019-12-27T07:37:13.986Z",
@@ -101,6 +115,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             description: "too many pipelines",
             expectTruncated: true,
             uniquePipelines: 50,
+            matchedPipelines: 50,
             pipelines: {
                 pipelines: generatePipelines(50),
             },
@@ -208,7 +223,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
                             const dashboard = JSON.parse(putDashboardSpy.getCall(0).args[0].DashboardBody);
                             const metricWidgets = dashboard.widgets.filter((w) => w.type === "metric");
 
-                            expect(metricWidgets.length).to.equal(widgetsPerPipeline * scenario.uniquePipelines);
+                            expect(metricWidgets.length).to.equal(widgetsPerPipeline * scenario.matchedPipelines);
                         });
                 });
                 it("should generate 5 text widgets - to explain each metric + interpretation", () => {
@@ -236,32 +251,31 @@ describe("stateOfDevOpsDashboardHandler", () => {
                 });
 
                 it("For each Pipeline there should be two pipeline metrics and two service health metrics", async () => {
-                    const ssm = new SSM();
-                    const result = await getAppNamesFromSSM(ssm);
+                    const result = SSMGetParameterSpy;
                     return LambdaTester(index.handler)
                         .event(scenario.event)
                         .expectResult((result, additional) => {
                             const dashboard = JSON.parse(putDashboardSpy.getCall(0).args[0].DashboardBody);
                             const metricWidgets = dashboard.widgets.filter((w) => w.type === "metric");
-
                             const pipelineNames = [...new Set(scenario.pipelines.pipelines.map((m) => m.name))];
                             pipelineNames.forEach((name, idx) => {
-                                if (name.includes(result))
-                                {const startIdx = idx * widgetsPerPipeline;
-                                const widgetsForPipeline = metricWidgets.slice(startIdx, startIdx + widgetsPerPipeline);
-                                let pipelineMetricsCounter = 0;
-                                let serviceHealthMetricsCounter = 0;
-                                widgetsForPipeline.forEach((widget) => {
-                                    if (JSON.stringify(widget.properties.metrics).includes(name)) {
-                                        pipelineMetricsCounter = pipelineMetricsCounter + 1;
-                                    }
-                                    if (JSON.stringify(widget.properties.metrics).includes("-service-health")) {
-                                        serviceHealthMetricsCounter = serviceHealthMetricsCounter + 1;
-                                    }
+                                if (name.includes(result)) {
+                                    const startIdx = idx * widgetsPerPipeline;
+                                    const widgetsForPipeline = metricWidgets.slice(startIdx, startIdx + widgetsPerPipeline);
+                                    let pipelineMetricsCounter = 0;
+                                    let serviceHealthMetricsCounter = 0;
+                                    widgetsForPipeline.forEach((widget) => {
+                                        if (JSON.stringify(widget.properties.metrics).includes(name)) {
+                                            pipelineMetricsCounter = pipelineMetricsCounter + 1;
+                                        }
+                                        if (JSON.stringify(widget.properties.metrics).includes("-service-health")) {
+                                            serviceHealthMetricsCounter = serviceHealthMetricsCounter + 1;
+                                        }
 
-                                });
-                                expect(pipelineMetricsCounter).to.equal(2);
-                                expect(serviceHealthMetricsCounter).to.equal(2);}
+                                    });
+                                    expect(pipelineMetricsCounter).to.equal(2);
+                                    expect(serviceHealthMetricsCounter).to.equal(2);
+                                }
                             });
                         });
                 });
