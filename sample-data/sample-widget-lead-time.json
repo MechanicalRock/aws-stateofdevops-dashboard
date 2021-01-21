@@ -1,0 +1,63 @@
+{
+    "metrics": [
+        [ { "expression": "m1/60", "label": "Lead Time", "id": "e1", "period": 86400, "region": "ap-southeast-2", "yAxis": "left", "color": "#ff7f0e", "visible": false } ],
+        [ { "expression": "FILL(m3,AVG(m4))/60", "label": "FirstDayFeels-cnf-pipeline-fb431f50-ddb5-11e9-b3b2-0278bc173a5c Lead Time (30d - p90)", "id": "e2", "region": "ap-southeast-2", "yAxis": "left", "color": "#1f77b4", "visible": false } ],
+        [ { "expression": "FILL(m4,AVG(m5))/60", "label": "FirstDayFeels-cnf-pipeline-fb431f50-ddb5-11e9-b3b2-0278bc173a5c Lead Time (30d - p10)", "id": "e3", "region": "ap-southeast-2", "yAxis": "left", "color": "#1f77b4", "visible": false } ],
+        [ { "expression": "FILL(m2,AVG(m3))/60", "label": "FirstDayFeels-cnf-pipeline-fb431f50-ddb5-11e9-b3b2-0278bc173a5c Lead Time (30d - p50)", "id": "e4", "region": "ap-southeast-2", "color": "#2ca02c", "visible": false } ],
+        [ "Pipeline", "DeliveryLeadTime", "PipelineName", "FirstDayFeels-cnf-pipeline-fb431f50-ddb5-11e9-b3b2-0278bc173a5c", { "label": "Lead Time", "color": "#1f77b4", "period": 86400, "id": "m1", "visible": false } ],
+        [ "...", { "id": "m2", "label": "Lead Time (30d)", "visible": false } ],
+        [ "...", { "stat": "p90", "id": "m3", "visible": false, "label": "FirstDayFeels-cnf-pipeline-fb431f50-ddb5-11e9-b3b2-0278bc173a5c Lead Time (p90)" } ],
+        [ "...", { "stat": "p10", "id": "m4", "visible": false, "label": "FirstDayFeels-cnf-pipeline-fb431f50-ddb5-11e9-b3b2-0278bc173a5c Lead Time (p10)" } ],
+        
+        [ { "expression": "m5/60", "label": "Lead Time", "id": "e5", "period": 86400, "region": "ap-southeast-2", "yAxis": "left", "color": "#ff7f0e", "visible": false } ],
+        [ { "expression": "FILL(m7,AVG(m4))/60", "label": "WEL-AppsPlatform-FirstDayFeels@develop Lead Time (30d - p90)", "id": "e6", "region": "ap-southeast-2", "yAxis": "left", "color": "#1f77b4", "visible": false } ],
+        [ { "expression": "FILL(m8,AVG(m5))/60", "label": "WEL-AppsPlatform-FirstDayFeels@develop Lead Time (30d - p10)", "id": "e7", "region": "ap-southeast-2", "yAxis": "left", "color": "#1f77b4", "visible": false } ],
+        [ { "expression": "FILL(m6,AVG(m3))/60", "label": "WEL-AppsPlatform-FirstDayFeels@develop Lead Time (30d - p50)", "id": "e8", "region": "ap-southeast-2", "color": "#2ca02c", "visible": false } ],
+        [ "Pipeline", "DeliveryLeadTime", "PipelineName", "WEL-AppsPlatform-FirstDayFeels@develop", { "label": "Lead Time", "color": "#1f77b4", "period": 86400, "id": "m5", "visible": false } ],
+        [ "...", { "id": "m6", "label": "WEL-AppsPlatform-FirstDayFeels@develop Lead Time (30d)", "visible": false } ],
+        [ "...", { "stat": "p90", "id": "m7", "visible": false, "label": "WEL-AppsPlatform-FirstDayFeels@develop Lead Time (p90)" } ],
+        [ "...", { "stat": "p10", "id": "m8", "visible": false, "label": "WEL-AppsPlatform-FirstDayFeels@develop Lead Time (p10)" } ],
+
+        [ { "expression": "(e1+e5)/2", "label": "First Day Feels Lead Time", "id": "s1", "color": "#ff7f0e" } ],
+        [ { "expression": "(e3+e7)/2", "label": "First Day Feels Lead Time (30d - p10)", "id": "e9", "color": "#1f77b4" } ],
+        [ { "expression": "(e4+e8)/2", "label": "First Day Feels Lead Time (30d - p50)", "id": "e10", "color": "#2ca02c" } ],
+        [ { "expression": "(e2+e6)/2", "label": "First Day Feels Lead Time (30d - p90)", "id": "e11" } ]
+    ],
+    "view": "timeSeries",
+    "region": "ap-southeast-2",
+    "title": "FirstDayFeels Application Lead Time",
+    "period": 2592000,
+    "stacked": false,
+    "yAxis": {
+        "left": {
+            "min": 0,
+            "label": "minutes",
+            "showUnits": false
+        },
+        "right": {
+            "showUnits": true
+        }
+    },
+    "annotations": {
+        "horizontal": [
+            {
+                "color": "#98df8a",
+                "label": "< 1 hour",
+                "value": 60,
+                "fill": "below"
+            },
+            [
+                {
+                    "color": "#dbdb8d",
+                    "value": 60,
+                    "label": "1 hour"
+                },
+                {
+                    "label": "< 0.5 day",
+                    "value": 720
+                }
+            ]
+        ]
+    },
+    "stat": "Average"
+}

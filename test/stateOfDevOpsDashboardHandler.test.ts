@@ -34,6 +34,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             dashboard: "../sample-data/sdo-dashboard-single-pipeline",
             uniquePipelines: 1,
             matchedPipelines: 1,
+            matchedAppNames: 1,
             pipelines: {
                 pipelines: [
                     {
@@ -60,6 +61,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             dashboard: "../sample-data/sdo-dashboard-multiple-pipelines",
             uniquePipelines: 6,
             matchedPipelines: 4,
+            matchedAppNames: 2,
             pipelines: {
                 pipelines: [
                     {
@@ -116,6 +118,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             expectTruncated: true,
             uniquePipelines: 50,
             matchedPipelines: 50,
+            matchedAppNames: 1,
             pipelines: {
                 pipelines: generatePipelines(50),
             },
@@ -208,22 +211,21 @@ describe("stateOfDevOpsDashboardHandler", () => {
                             .event(scenario.event)
                             .expectResult((result, additional) => {
                                 const dashboard = JSON.parse(putDashboardSpy.getCall(0).args[0].DashboardBody);
-                                const textWidgets = dashboard.widgets.filter((w) => w.type === "text");
+                                const textWidgets = dashboard.widgets.filter((w) => w?.type === "text");
 
                                 expect(textWidgets.length).to.equal(6);
                             });
                     });
                 });
             } else {
-                const widgetsPerPipeline = 4;
-                it(`should generate ${widgetsPerPipeline} dashboards per pipeline`, () => {
+                const widgetsPerApplication = 4;
+                it(`should generate ${widgetsPerApplication} dashboards per application`, () => {
                     return LambdaTester(index.handler)
                         .event(scenario.event)
                         .expectResult((result, additional) => {
                             const dashboard = JSON.parse(putDashboardSpy.getCall(0).args[0].DashboardBody);
-                            const metricWidgets = dashboard.widgets.filter((w) => w.type === "metric");
-
-                            expect(metricWidgets.length).to.equal(widgetsPerPipeline * scenario.matchedPipelines);
+                            const metricWidgets = dashboard.widgets.filter((w) => w?.type === "metric");
+                            expect(metricWidgets.length).to.equal(widgetsPerApplication * scenario.matchedAppNames);
                         });
                 });
                 it("should generate 5 text widgets - to explain each metric + interpretation", () => {
@@ -231,7 +233,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
                         .event(scenario.event)
                         .expectResult((result, additional) => {
                             const dashboard = JSON.parse(putDashboardSpy.getCall(0).args[0].DashboardBody);
-                            const textWidgets = dashboard.widgets.filter((w) => w.type === "text");
+                            const textWidgets = dashboard.widgets.filter((w) => w?.type === "text");
 
                             expect(textWidgets.length).to.equal(5);
                         });
@@ -256,12 +258,12 @@ describe("stateOfDevOpsDashboardHandler", () => {
                         .event(scenario.event)
                         .expectResult((result, additional) => {
                             const dashboard = JSON.parse(putDashboardSpy.getCall(0).args[0].DashboardBody);
-                            const metricWidgets = dashboard.widgets.filter((w) => w.type === "metric");
+                            const metricWidgets = dashboard.widgets.filter((w) => w?.type === "metric");
                             const pipelineNames = [...new Set(scenario.pipelines.pipelines.map((m) => m.name))];
                             pipelineNames.forEach((name, idx) => {
                                 if (name.includes(result)) {
-                                    const startIdx = idx * widgetsPerPipeline;
-                                    const widgetsForPipeline = metricWidgets.slice(startIdx, startIdx + widgetsPerPipeline);
+                                    const startIdx = idx * widgetsPerApplication;
+                                    const widgetsForPipeline = metricWidgets.slice(startIdx, startIdx + widgetsPerApplication);
                                     let pipelineMetricsCounter = 0;
                                     let serviceHealthMetricsCounter = 0;
                                     widgetsForPipeline.forEach((widget) => {
