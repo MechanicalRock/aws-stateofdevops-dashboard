@@ -54,6 +54,74 @@
         {
             "type": "metric",
             "x": 0,
+            "y": 0,
+            "width": 24,
+            "height": 4,
+            "properties": {
+                "metrics": [
+                    [
+                        "Pipeline",
+                        "SuccessCount",
+                        "account",
+                        "123456789012",
+                        {
+                            "id": "m1",
+                            "visible": true,
+                            "label": "Account ID : 123456789012 Deployment-Frequency (Day)"
+                        }
+                    ],
+                    [
+                        ".",
+                        "DeliveryLeadTime",
+                        ".",
+                        ".",
+                        {
+                            "id": "m2",
+                            "visible": true,
+                            "label": "Account ID : 123456789012 Lead Time"
+                        }
+                    ],
+                    [
+                        "Operations",
+                        "MTTR",
+                        ".",
+                        ".",
+                        {
+                            "id": "m3",
+                            "visible": true,
+                            "label": "Account ID : 123456789012 MTTR"
+                        }
+                    ],
+                    [
+                        ".",
+                        "MTBF",
+                        ".",
+                        ".",
+                        {
+                            "id": "m4",
+                            "visible": true,
+                            "label": "Account ID : 123456789012 MTBF"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "(m4-m3)/m4",
+                            "label": "Availability % (approximately)",
+                            "id": "e1"
+                        }
+                    ]
+                ],
+                "view": "singleValue",
+                "stacked": false,
+                "region": "ap-southeast-2",
+                "stat": "Average",
+                "period": 2592000,
+                "title": "Account Level Metrics for 123456789012"
+            }
+        },
+        {
+            "type": "metric",
+            "x": 0,
             "y": 4,
             "width": 12,
             "height": 6,

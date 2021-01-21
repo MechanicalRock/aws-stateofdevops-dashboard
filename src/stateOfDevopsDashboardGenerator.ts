@@ -45,6 +45,31 @@ const applyLimits = (state: any) => {
     }
 };
 
+function accountLevelMetrics(state: any) {
+    const accountLevelMetricsWidget = {
+        "type": "metric",
+        "x": 0,
+        "y": 0,
+        "width": 24,
+        "height": 4,
+        "properties": {
+            "metrics": [
+                ["Pipeline", "SuccessCount", "account", `${state.event.account}`, { "id": "m1", "visible": true, "label": `Account ID : ${state.event.account} Deployment-Frequency (Day)` }],
+                [".", "DeliveryLeadTime", ".", ".", { "id": "m2", "visible": true, "label": `Account ID : ${state.event.account} Lead Time` }],
+                ["Operations", "MTTR", ".", ".", { "id": "m3", "visible": true, "label": `Account ID : ${state.event.account} MTTR` }],
+                [".", "MTBF", ".", ".", { "id": "m4", "visible": true, "label": `Account ID : ${state.event.account} MTBF` }],
+                [{ "expression": "(m4-m3)/m4", "label": "Availability % (approximately)", "id": "e1" }]
+            ],
+            "view": "singleValue",
+            "stacked": false,
+            "region": "ap-southeast-2",
+            "stat": "Average",
+            "period": 2592000,
+            "title": `Account Level Metrics for ${state.event.account}`
+        }
+    }
+    return accountLevelMetricsWidget
+}
 function getPipelinesBasedonAppName(state: any, appName: string) {
     let matchedPipelines: string[] = [];
     state.pipelineNames?.forEach((element: string) => {
@@ -556,6 +581,8 @@ export class StateOfDevOpsDashboardGenerator {
             x += 4;
         });
 
+        dashboard.widgets.push(accountLevelMetrics(state))
+
         if (state.expectTruncated) {
             dashboard.widgets.push({
                 type: "text",
@@ -583,6 +610,8 @@ export class StateOfDevOpsDashboardGenerator {
                 return widget;
             }
         });
+
+
 
         // flatten the nested arrays
         dashboard.widgets = [].concat.apply(dashboard.widgets, applicationWidgets);
