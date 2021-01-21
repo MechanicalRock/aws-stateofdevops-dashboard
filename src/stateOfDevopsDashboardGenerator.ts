@@ -572,21 +572,26 @@ export class StateOfDevOpsDashboardGenerator {
 
         y += TEXT_HEIGHT;
 
-        const applicationWidgets = state.appNames.map((appName: string) => {
+        let applicationWidgets = state.appNames.map((appName: string) => {
             const applicationPipelines = getPipelinesBasedonAppName(state, appName);
             if (applicationPipelines.length > 0) {
                 let widget = [deploymentFrequencyforApplication(appName, applicationPipelines, y, state)].concat(
                     leadTimeForApplication(appName, applicationPipelines, y, state)
                 );
+                
                 widget = widget.concat(healthWidgets(appName, y, state));
                 y += 2 * WIDGET_HEIGHT;
                 return widget;
             }
         });
+        applicationWidgets = applicationWidgets.filter(function (element: any) {
+            return element !== undefined;
+        });
 
         // flatten the nested arrays
-        dashboard.widgets = [].concat.apply(dashboard.widgets, applicationWidgets);
 
+        dashboard.widgets = [].concat.apply(dashboard.widgets)
+        dashboard.widgets = [].concat.apply(dashboard.widgets, applicationWidgets);
         return state.cloudwatch
             .putDashboard({
                 DashboardName: "StateOfDevOps-" + state.region,
