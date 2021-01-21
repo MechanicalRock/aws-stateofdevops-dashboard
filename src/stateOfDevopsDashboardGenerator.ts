@@ -102,6 +102,12 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
     }
     cumulativedeploymentFrequency = cumulativedeploymentFrequency.slice(0, -1);
     cumulativeaverage30d = cumulativeaverage30d.slice(0, -1)
+
+    if(cumulativeaverage30d.includes('+'))
+    {
+        cumulativeaverage30d = `(${cumulativeaverage30d})/2`
+    }
+
     metricObj.push(
         [{
             "expression": cumulativedeploymentFrequency,
@@ -111,7 +117,7 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
         }
         ],
         [{
-            "expression": `(${cumulativeaverage30d})/2`, "label": `${appName} Application Average over 30d`, "id": "f2", "color": "#2ca02c"
+            "expression": cumulativeaverage30d, "label": `${appName} Application Average over 30d`, "id": "f2", "color": "#2ca02c"
         }]
     )
     const deploymentFrequencyWidget = {
@@ -258,17 +264,26 @@ function leadTimeForApplication(appName: string, applicationPipelines: String[],
     cumuluativeLeadTimeAveragep50 = cumuluativeLeadTimeAveragep50.slice(0, -1)
     cumuluativeLeadTimeAveragep90 = cumuluativeLeadTimeAveragep90.slice(0, -1)
 
+    if(cumulativeLeadTimeAverage.includes('+') && cumuluativeLeadTimeAveragep10.includes('+') && cumuluativeLeadTimeAveragep50.includes('+') && cumuluativeLeadTimeAveragep90.includes('+'))
+    {
+        cumulativeLeadTimeAverage = `(${cumulativeLeadTimeAverage})/2`
+        cumuluativeLeadTimeAveragep10 = `(${cumuluativeLeadTimeAveragep10})/2`
+        cumuluativeLeadTimeAveragep50 = `(${cumuluativeLeadTimeAveragep50})/2`
+        cumuluativeLeadTimeAveragep90 = `(${cumuluativeLeadTimeAveragep90})/2`  
+    }
+    
+
     metricObj.push(
         [{
-            "expression": `(${cumulativeLeadTimeAverage})/2`,
+            "expression": cumulativeLeadTimeAverage,
             "label": `${appName} Application LeadTime`,
             "id": "f1",
             "color": "#ff7f0e"
         }
         ],
-        [{ "expression": `(${cumuluativeLeadTimeAveragep10})/2`, "label": `${appName} Lead Time (30d - p10)`, "id": "f2", "color": "#1f77b4" }],
-        [{ "expression": `(${cumuluativeLeadTimeAveragep50})/2`, "label": `${appName} Lead Time (30d - p50)`, "id": "f3", "color": "#1f77b4" }],
-        [{ "expression": `(${cumuluativeLeadTimeAveragep90})/2`, "label": `${appName} Lead Time (30d - p90)`, "id": "f4", "color": "#2ca02c" }],
+        [{ "expression": cumuluativeLeadTimeAveragep10, "label": `${appName} Lead Time (30d - p10)`, "id": "f2", "color": "#1f77b4" }],
+        [{ "expression": cumuluativeLeadTimeAveragep50, "label": `${appName} Lead Time (30d - p50)`, "id": "f3", "color": "#1f77b4" }],
+        [{ "expression": cumuluativeLeadTimeAveragep90, "label": `${appName} Lead Time (30d - p90)`, "id": "f4", "color": "#2ca02c" }],
     )
     const leadTimeWidget = {
         type: "metric",

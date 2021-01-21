@@ -836,7 +836,7 @@
                         ],
                         [
                             {
-                                "expression": "(e1)/2",
+                                "expression": "e1",
                                 "label": "app2 Application Average over 30d",
                                 "id": "f2",
                                 "color": "#2ca02c"
@@ -972,7 +972,7 @@
                         ],
                         [
                             {
-                                "expression": "(e1)/2",
+                                "expression": "e1",
                                 "label": "app2 Application LeadTime",
                                 "id": "f1",
                                 "color": "#ff7f0e"
@@ -980,7 +980,7 @@
                         ],
                         [
                             {
-                                "expression": "(e3)/2",
+                                "expression": "e3",
                                 "label": "app2 Lead Time (30d - p10)",
                                 "id": "f2",
                                 "color": "#1f77b4"
@@ -988,7 +988,7 @@
                         ],
                         [
                             {
-                                "expression": "(e4)/2",
+                                "expression": "e4",
                                 "label": "app2 Lead Time (30d - p50)",
                                 "id": "f3",
                                 "color": "#1f77b4"
@@ -996,7 +996,7 @@
                         ],
                         [
                             {
-                                "expression": "(e2)/2",
+                                "expression": "e2",
                                 "label": "app2 Lead Time (30d - p90)",
                                 "id": "f4",
                                 "color": "#2ca02c"
