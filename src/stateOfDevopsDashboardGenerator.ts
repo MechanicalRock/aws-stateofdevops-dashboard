@@ -54,10 +54,10 @@ function accountLevelMetrics(state: any) {
         "height": 4,
         "properties": {
             "metrics": [
-                ["Pipeline", "SuccessCount", "account", `${state.event.account}`, { "id": "m1", "visible": true, "label": `Account ID : ${state.event.account} Deployment-Frequency (Day)` }],
-                [".", "DeliveryLeadTime", ".", ".", { "id": "m2", "visible": true, "label": `Account ID : ${state.event.account} Lead Time` }],
-                ["Operations", "MTTR", ".", ".", { "id": "m3", "visible": true, "label": `Account ID : ${state.event.account} MTTR` }],
-                [".", "MTBF", ".", ".", { "id": "m4", "visible": true, "label": `Account ID : ${state.event.account} MTBF` }],
+                ["Pipeline", "SuccessCount", "account", `${state.event.account}`, { "id": "m1", "visible": true, "label": "Deployment-Frequency (Day)" }],
+                [".", "DeliveryLeadTime", ".", ".", { "id": "m2", "visible": true, "label": "Lead Time" }],
+                ["Operations", "MTTR", ".", ".", { "id": "m3", "visible": true, "label": " MTTR" }],
+                [".", "MTBF", ".", ".", { "id": "m4", "visible": true, "label": "MTBF" }],
                 [{ "expression": "(m4-m3)/m4", "label": "Availability % (approximately)", "id": "e1" }]
             ],
             "view": "singleValue",
@@ -91,14 +91,20 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
                     expression: `FILL( m${counter + 1},0)`,
                     id: `e${counter + 1}`,
                     period: DAYS.unit,
-                    region: state.region,
+                    "region": "ap-southeast-2",
                     yAxis: "left",
                     color: "#ff7f0e",
                     label: `${element} Deployment Frequency`,
                     "visible": false
                 },
             ],
-            [{ expression: `m${counter}/PERIOD(m${counter}) * ${DAYS.unit}`, label: `${element} Average (30d)`, id: `e${counter}`, color: MEAN_COLOUR, "visible": false }],
+            [{
+                expression: `m${counter}/PERIOD(m${counter}) * ${DAYS.unit}`,
+                label: `${element} Average (30d)`, id: `e${counter}`,
+                color: MEAN_COLOUR,
+                "region": "ap-southeast-2",
+                "visible": false
+            }],
             [
                 "Pipeline",
                 "SuccessCount",
@@ -112,7 +118,14 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
                     label: "Deployments",
                 },
             ],
-            ["...", { period: THIRTY_DAYS, stat: "Sum", id: `m${counter}`, label: `${element} Deployment Freq (30d)`, visible: false }])
+            ["...",
+                {
+                    period: THIRTY_DAYS,
+                    stat: "Sum",
+                    id: `m${counter}`,
+                    label: `${element} Deployment Freq (30d)`,
+                    visible: false
+                }])
 
         counter += 2;
     })
@@ -140,7 +153,10 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
         }
         ],
         [{
-            "expression": cumulativeaverage30d, "label": `${appName} Application Average over 30d`, "id": "f2", "color": "#2ca02c"
+            "expression": cumulativeaverage30d,
+            "label": `${appName} Application Average over 30d`,
+            "id": "f2",
+            "color": "#2ca02c"
         }]
     )
     const deploymentFrequencyWidget = {
@@ -150,9 +166,9 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
         width: WIDGET_WIDTH,
         height: WIDGET_HEIGHT,
         properties: {
-            metrics: [metricObj],
+            metrics: metricObj,
             view: "timeSeries",
-            region: state.region,
+            "region": "ap-southeast-2",
             title: `${appName} Deployment Frequency`,
             period: THIRTY_DAYS,
             stacked: false,
@@ -195,7 +211,6 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
 function leadTimeForApplication(appName: string, applicationPipelines: String[], y: number, state: any) {
     const metricObj = []
     let counter = 1;
-    const region = state.region;
     const unitConversion = state.widgetMappings[0].unitConversion.unit;
     const label = state.widgetMappings[0].label;
 
@@ -207,37 +222,37 @@ function leadTimeForApplication(appName: string, applicationPipelines: String[],
                     label: `${element} ${label}`,
                     id: `e${counter}`,
                     period: DAYS.unit,
-                    region: region,
+                    "region": "ap-southeast-2",
                     yAxis: "left",
                     color: "#ff7f0e",
                 },
             ],
             [
                 {
-                    expression: `FILL(m${counter + 2},AVG(m${counter + 3}))/${unitConversion}`,
+                    expression: `FILL(m${counter + 2},AVG(m${counter + 2}))/${unitConversion}`,
                     label: `${element} ${label} (30d - p90)`,
                     id: `e${counter + 1}`,
-                    region: region,
+                    "region": "ap-southeast-2",
                     yAxis: "left",
                     color: "#1f77b4",
                 },
             ],
             [
                 {
-                    expression: `FILL(m${counter + 3},AVG(m${counter + 4}))/${unitConversion}`,
+                    expression: `FILL(m${counter + 3},AVG(m${counter + 3}))/${unitConversion}`,
                     label: `${element} ${label} (30d - p10)`,
                     id: `e${counter + 2}`,
-                    region: region,
+                    "region": "ap-southeast-2",
                     yAxis: "left",
                     color: "#1f77b4",
                 },
             ],
             [
                 {
-                    expression: `FILL(m${counter + 1},AVG(m${counter + 2}))/${unitConversion}`,
+                    expression: `FILL(m${counter + 1},AVG(m${counter + 1}))/${unitConversion}`,
                     label: `${element} ${label} (30d - p50)`,
                     id: `e${counter + 3}`,
-                    region: region,
+                    "region": "ap-southeast-2",
                     color: MEAN_COLOUR,
                 },
             ],
@@ -273,9 +288,10 @@ function leadTimeForApplication(appName: string, applicationPipelines: String[],
 
     for (let i = 1; i < counter; i += 4) {
         const leadTimeAverage = `e${i}`
+        const leadTimeAveragep90 = `e${i + 1}`
         const leadTimeAveragep10 = `e${i + 2}`
         const leadTimeAveragep50 = `e${i + 3}`
-        const leadTimeAveragep90 = `e${i + 1}`
+        
         cumulativeLeadTimeAverage += leadTimeAverage + "+"
         cumuluativeLeadTimeAveragep10 += leadTimeAveragep10 + "+"
         cumuluativeLeadTimeAveragep50 += leadTimeAveragep50 + "+"
@@ -314,9 +330,9 @@ function leadTimeForApplication(appName: string, applicationPipelines: String[],
         width: WIDGET_WIDTH,
         height: WIDGET_HEIGHT,
         properties: {
-            metrics: [metricObj],
+            metrics: metricObj,
             view: "timeSeries",
-            region: region,
+            "region": "ap-southeast-2",
             title: `${appName} ${label}`,
             period: THIRTY_DAYS,
             stacked: false,
@@ -340,7 +356,6 @@ function healthWidgets(applicationName: string, y: number, state: any) {
     const serviceName = `${applicationName}-service-health`;
 
     return state.healthWidgetMappings.map((mapping: any) => {
-        const region = state.region;
         const unitConversion = mapping.unitConversion.unit;
         const label = mapping.label;
 
@@ -358,7 +373,7 @@ function healthWidgets(applicationName: string, y: number, state: any) {
                             label: `${label}`,
                             id: "e2",
                             period: DAYS.unit,
-                            region: region,
+                            "region": "ap-southeast-2",
                             yAxis: "left",
                             color: "#ff7f0e",
                         },
@@ -368,7 +383,7 @@ function healthWidgets(applicationName: string, y: number, state: any) {
                             expression: `FILL(m4,AVG(m4))/${unitConversion}`,
                             label: `${label} (30d - p90)`,
                             id: "e3",
-                            region: region,
+                            "region": "ap-southeast-2",
                             yAxis: "left",
                             color: "#1f77b4",
                         },
@@ -378,7 +393,7 @@ function healthWidgets(applicationName: string, y: number, state: any) {
                             expression: `FILL(m5,AVG(m5))/${unitConversion}`,
                             label: `${label} (30d - p10)`,
                             id: "e4",
-                            region: region,
+                            "region": "ap-southeast-2",
                             yAxis: "left",
                             color: "#1f77b4",
                         },
@@ -388,7 +403,7 @@ function healthWidgets(applicationName: string, y: number, state: any) {
                             expression: `FILL(m3,AVG(m3))/${unitConversion}`,
                             label: `${label} (30d - p50)`,
                             id: "e5",
-                            region: region,
+                            "region": "ap-southeast-2",
                             color: MEAN_COLOUR,
                         },
                     ],
@@ -414,7 +429,7 @@ function healthWidgets(applicationName: string, y: number, state: any) {
                     ["...", { stat: "p10", period: THIRTY_DAYS, id: "m5", visible: false, label: `${label} (p10)` }],
                 ],
                 view: "timeSeries",
-                region: region,
+                "region": "ap-southeast-2",
                 title: `${applicationName} ${label}`,
                 period: THIRTY_DAYS,
                 stacked: false,
@@ -619,6 +634,7 @@ export class StateOfDevOpsDashboardGenerator {
                 );
                 widget = widget.concat(healthWidgets(appName, y, state));
                 y += 2 * WIDGET_HEIGHT;
+                // let widget = deploymentFrequencyforApplication(appName, applicationPipelines, y, state)
                 return widget;
             }
         });

@@ -67,7 +67,7 @@
                         {
                             "id": "m1",
                             "visible": true,
-                            "label": "Account ID : 123456789012 Deployment-Frequency (Day)"
+                            "label": "Deployment-Frequency (Day)"
                         }
                     ],
                     [
@@ -78,7 +78,7 @@
                         {
                             "id": "m2",
                             "visible": true,
-                            "label": "Account ID : 123456789012 Lead Time"
+                            "label": "Lead Time"
                         }
                     ],
                     [
@@ -89,7 +89,7 @@
                         {
                             "id": "m3",
                             "visible": true,
-                            "label": "Account ID : 123456789012 MTTR"
+                            "label": " MTTR"
                         }
                     ],
                     [
@@ -100,7 +100,7 @@
                         {
                             "id": "m4",
                             "visible": true,
-                            "label": "Account ID : 123456789012 MTBF"
+                            "label": "MTBF"
                         }
                     ],
                     [
@@ -128,68 +128,69 @@
             "properties": {
                 "metrics": [
                     [
-                        [
-                            {
-                                "expression": "FILL( m2,0)",
-                                "id": "e2",
-                                "period": 86400,
-                                "yAxis": "left",
-                                "color": "#ff7f0e",
-                                "label": "app1-flaky-service-pipeline Deployment Frequency",
-                                "visible": false
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "m1/PERIOD(m1) * 86400",
-                                "label": "app1-flaky-service-pipeline Average (30d)",
-                                "id": "e1",
-                                "color": "#2ca02c",
-                                "visible": false
-                            }
-                        ],
-                        [
-                            "Pipeline",
-                            "SuccessCount",
-                            "PipelineName",
-                            "app1-flaky-service-pipeline",
-                            {
-                                "period": 86400,
-                                "stat": "Sum",
-                                "id": "m2",
-                                "visible": false,
-                                "label": "Deployments"
-                            }
-                        ],
-                        [
-                            "...",
-                            {
-                                "period": 2592000,
-                                "stat": "Sum",
-                                "id": "m1",
-                                "label": "app1-flaky-service-pipeline Deployment Freq (30d)",
-                                "visible": false
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "e2",
-                                "label": "app1 Application Deployment Frequency",
-                                "id": "f1",
-                                "color": "#ff7f0e"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "e1",
-                                "label": "app1 Application Average over 30d",
-                                "id": "f2",
-                                "color": "#2ca02c"
-                            }
-                        ]
+                        {
+                            "expression": "FILL( m2,0)",
+                            "id": "e2",
+                            "period": 86400,
+                            "region": "ap-southeast-2",
+                            "yAxis": "left",
+                            "color": "#ff7f0e",
+                            "label": "app1-flaky-service-pipeline Deployment Frequency",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "m1/PERIOD(m1) * 86400",
+                            "label": "app1-flaky-service-pipeline Average (30d)",
+                            "id": "e1",
+                            "color": "#2ca02c",
+                            "region": "ap-southeast-2",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "Pipeline",
+                        "SuccessCount",
+                        "PipelineName",
+                        "app1-flaky-service-pipeline",
+                        {
+                            "period": 86400,
+                            "stat": "Sum",
+                            "id": "m2",
+                            "visible": false,
+                            "label": "Deployments"
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "period": 2592000,
+                            "stat": "Sum",
+                            "id": "m1",
+                            "label": "app1-flaky-service-pipeline Deployment Freq (30d)",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "e2",
+                            "label": "app1 Application Deployment Frequency",
+                            "id": "f1",
+                            "color": "#ff7f0e"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "e1",
+                            "label": "app1 Application Average over 30d",
+                            "id": "f2",
+                            "color": "#2ca02c"
+                        }
                     ]
                 ],
                 "view": "timeSeries",
+                "region": "ap-southeast-2",
                 "title": "app1 Deployment Frequency",
                 "period": 2592000,
                 "stacked": false,
@@ -235,121 +236,124 @@
             "properties": {
                 "metrics": [
                     [
-                        [
-                            {
-                                "expression": "m1/60",
-                                "label": "app1-flaky-service-pipeline Lead Time",
-                                "id": "e1",
-                                "period": 86400,
-                                "yAxis": "left",
-                                "color": "#ff7f0e"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "FILL(m3,AVG(m4))/60",
-                                "label": "app1-flaky-service-pipeline Lead Time (30d - p90)",
-                                "id": "e2",
-                                "yAxis": "left",
-                                "color": "#1f77b4"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "FILL(m4,AVG(m5))/60",
-                                "label": "app1-flaky-service-pipeline Lead Time (30d - p10)",
-                                "id": "e3",
-                                "yAxis": "left",
-                                "color": "#1f77b4"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "FILL(m2,AVG(m3))/60",
-                                "label": "app1-flaky-service-pipeline Lead Time (30d - p50)",
-                                "id": "e4",
-                                "color": "#2ca02c"
-                            }
-                        ],
-                        [
-                            "Pipeline",
-                            "DeliveryLeadTime",
-                            "PipelineName",
-                            "app1-flaky-service-pipeline",
-                            {
-                                "label": "app1-flaky-service-pipeline Lead Time",
-                                "stat": "Average",
-                                "color": "#1f77b4",
-                                "period": 86400,
-                                "id": "m1",
-                                "visible": false
-                            }
-                        ],
-                        [
-                            "...",
-                            {
-                                "stat": "Average",
-                                "period": 2592000,
-                                "id": "m2",
-                                "label": "app1-flaky-service-pipeline Lead Time (30d)",
-                                "visible": false
-                            }
-                        ],
-                        [
-                            "...",
-                            {
-                                "stat": "p90",
-                                "period": 2592000,
-                                "id": "m3",
-                                "visble": false,
-                                "label": "app1-flaky-service-pipeline Lead Time (p90)"
-                            }
-                        ],
-                        [
-                            "...",
-                            {
-                                "stat": "p10",
-                                "period": 2592000,
-                                "id": "m4",
-                                "visible": false,
-                                "label": "app1-flaky-service-pipeline Lead Time (p10)"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "e1",
-                                "label": "app1 Application LeadTime",
-                                "id": "f1",
-                                "color": "#ff7f0e"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "e3",
-                                "label": "app1 Lead Time (30d - p10)",
-                                "id": "f2",
-                                "color": "#1f77b4"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "e4",
-                                "label": "app1 Lead Time (30d - p50)",
-                                "id": "f3",
-                                "color": "#1f77b4"
-                            }
-                        ],
-                        [
-                            {
-                                "expression": "e2",
-                                "label": "app1 Lead Time (30d - p90)",
-                                "id": "f4",
-                                "color": "#2ca02c"
-                            }
-                        ]
+                        {
+                            "expression": "m1/60",
+                            "label": "app1-flaky-service-pipeline Lead Time",
+                            "id": "e1",
+                            "period": 86400,
+                            "region": "ap-southeast-2",
+                            "yAxis": "left",
+                            "color": "#ff7f0e"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m3,AVG(m3))/60",
+                            "label": "app1-flaky-service-pipeline Lead Time (30d - p90)",
+                            "id": "e2",
+                            "region": "ap-southeast-2",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m4,AVG(m4))/60",
+                            "label": "app1-flaky-service-pipeline Lead Time (30d - p10)",
+                            "id": "e3",
+                            "region": "ap-southeast-2",
+                            "yAxis": "left",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "FILL(m2,AVG(m2))/60",
+                            "label": "app1-flaky-service-pipeline Lead Time (30d - p50)",
+                            "id": "e4",
+                            "region": "ap-southeast-2",
+                            "color": "#2ca02c"
+                        }
+                    ],
+                    [
+                        "Pipeline",
+                        "DeliveryLeadTime",
+                        "PipelineName",
+                        "app1-flaky-service-pipeline",
+                        {
+                            "label": "app1-flaky-service-pipeline Lead Time",
+                            "stat": "Average",
+                            "color": "#1f77b4",
+                            "period": 86400,
+                            "id": "m1",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "Average",
+                            "period": 2592000,
+                            "id": "m2",
+                            "label": "app1-flaky-service-pipeline Lead Time (30d)",
+                            "visible": false
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p90",
+                            "period": 2592000,
+                            "id": "m3",
+                            "visble": false,
+                            "label": "app1-flaky-service-pipeline Lead Time (p90)"
+                        }
+                    ],
+                    [
+                        "...",
+                        {
+                            "stat": "p10",
+                            "period": 2592000,
+                            "id": "m4",
+                            "visible": false,
+                            "label": "app1-flaky-service-pipeline Lead Time (p10)"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "e1",
+                            "label": "app1 Application LeadTime",
+                            "id": "f1",
+                            "color": "#ff7f0e"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "e3",
+                            "label": "app1 Lead Time (30d - p10)",
+                            "id": "f2",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "e4",
+                            "label": "app1 Lead Time (30d - p50)",
+                            "id": "f3",
+                            "color": "#1f77b4"
+                        }
+                    ],
+                    [
+                        {
+                            "expression": "e2",
+                            "label": "app1 Lead Time (30d - p90)",
+                            "id": "f4",
+                            "color": "#2ca02c"
+                        }
                     ]
                 ],
                 "view": "timeSeries",
+                "region": "ap-southeast-2",
                 "title": "app1 Lead Time",
                 "period": 2592000,
                 "stacked": false,
@@ -400,6 +404,7 @@
                             "label": "MTBF",
                             "id": "e2",
                             "period": 86400,
+                            "region": "ap-southeast-2",
                             "yAxis": "left",
                             "color": "#ff7f0e"
                         }
@@ -409,6 +414,7 @@
                             "expression": "FILL(m4,AVG(m4))/86400",
                             "label": "MTBF (30d - p90)",
                             "id": "e3",
+                            "region": "ap-southeast-2",
                             "yAxis": "left",
                             "color": "#1f77b4"
                         }
@@ -418,6 +424,7 @@
                             "expression": "FILL(m5,AVG(m5))/86400",
                             "label": "MTBF (30d - p10)",
                             "id": "e4",
+                            "region": "ap-southeast-2",
                             "yAxis": "left",
                             "color": "#1f77b4"
                         }
@@ -427,6 +434,7 @@
                             "expression": "FILL(m3,AVG(m3))/86400",
                             "label": "MTBF (30d - p50)",
                             "id": "e5",
+                            "region": "ap-southeast-2",
                             "color": "#2ca02c"
                         }
                     ],
@@ -476,6 +484,7 @@
                     ]
                 ],
                 "view": "timeSeries",
+                "region": "ap-southeast-2",
                 "title": "app1 MTBF",
                 "period": 2592000,
                 "stacked": false,
@@ -505,6 +514,7 @@
                             "label": "MTTR",
                             "id": "e2",
                             "period": 86400,
+                            "region": "ap-southeast-2",
                             "yAxis": "left",
                             "color": "#ff7f0e"
                         }
@@ -514,6 +524,7 @@
                             "expression": "FILL(m4,AVG(m4))/3600",
                             "label": "MTTR (30d - p90)",
                             "id": "e3",
+                            "region": "ap-southeast-2",
                             "yAxis": "left",
                             "color": "#1f77b4"
                         }
@@ -523,6 +534,7 @@
                             "expression": "FILL(m5,AVG(m5))/3600",
                             "label": "MTTR (30d - p10)",
                             "id": "e4",
+                            "region": "ap-southeast-2",
                             "yAxis": "left",
                             "color": "#1f77b4"
                         }
@@ -532,6 +544,7 @@
                             "expression": "FILL(m3,AVG(m3))/3600",
                             "label": "MTTR (30d - p50)",
                             "id": "e5",
+                            "region": "ap-southeast-2",
                             "color": "#2ca02c"
                         }
                     ],
@@ -581,6 +594,7 @@
                     ]
                 ],
                 "view": "timeSeries",
+                "region": "ap-southeast-2",
                 "title": "app1 MTTR",
                 "period": 2592000,
                 "stacked": false,
