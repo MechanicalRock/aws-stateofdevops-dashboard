@@ -1,7 +1,4 @@
 /* eslint-disable quotes */
-import { ConfigurationServicePlaceholders } from "aws-sdk/lib/config_service_placeholders";
-import { stat } from "fs";
-import { sanitizePipelineName } from "./stateChangeCapture";
 import { getAppNamesFromSSM } from "./utils";
 const ANNOTATION_ELITE_COLOUR = "#98df8a";
 const ANNOTATION_HIGH_COLOUR = "#dbdb8d";
