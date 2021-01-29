@@ -138,6 +138,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             beforeEach(() => {
                 // https://github.com/dwyl/aws-sdk-mock/issues/118
                 // Cannot use aws-sdk-mock
+                process.env.AWS_REGION = "ap-southeast-2";
                 putDashboardSpy = sandbox.stub().returns({
                     promise: () => Promise.resolve(),
                 });
@@ -261,7 +262,10 @@ describe("stateOfDevOpsDashboardHandler", () => {
                             pipelineNames.forEach((name, idx) => {
                                 if (name.includes(result)) {
                                     const startIdx = idx * widgetsPerApplication;
-                                    const widgetsForPipeline = metricWidgets.slice(startIdx, startIdx + widgetsPerApplication);
+                                    const widgetsForPipeline = metricWidgets.slice(
+                                        startIdx,
+                                        startIdx + widgetsPerApplication,
+                                    );
                                     let pipelineMetricsCounter = 0;
                                     let serviceHealthMetricsCounter = 0;
                                     widgetsForPipeline.forEach((widget) => {
@@ -271,7 +275,6 @@ describe("stateOfDevOpsDashboardHandler", () => {
                                         if (JSON.stringify(widget.properties.metrics).includes("-service-health")) {
                                             serviceHealthMetricsCounter = serviceHealthMetricsCounter + 1;
                                         }
-
                                     });
                                     expect(pipelineMetricsCounter).to.equal(2);
                                     expect(serviceHealthMetricsCounter).to.equal(2);
