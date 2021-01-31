@@ -11,5 +11,5 @@ export const handler: Handler = async (event) => {
         ssm: new SSM(),
     });
 
-    return await new StateOfDevOpsDashboardGenerator().run(statePromise);
+    await new StateOfDevOpsDashboardGenerator().run(statePromise);
 };

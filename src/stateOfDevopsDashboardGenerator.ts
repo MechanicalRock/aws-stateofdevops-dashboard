@@ -1,8 +1,6 @@
 /* eslint-disable quotes */
-import { ConfigurationServicePlaceholders } from "aws-sdk/lib/config_service_placeholders";
-import { stat } from "fs";
-import { sanitizePipelineName } from "./stateChangeCapture";
-import { getAppNamesFromSSM } from './utils';
+import { getAppNamesFromSSM } from "./utils";
+
 const ANNOTATION_ELITE_COLOUR = "#98df8a";
 const ANNOTATION_HIGH_COLOUR = "#dbdb8d";
 const MEAN_COLOUR = "#2ca02c";
@@ -45,92 +43,66 @@ const applyLimits = (state: any) => {
     }
 };
 
-function getPipelinesBasedonAppName(state: any, appName: string) {
-    let matchedPipelines: string[] = [];
-    state.pipelineNames?.forEach((element: string) => {
-        if (element.includes(appName)) {
-            matchedPipelines.push(element)
-        }
-    });
+function getPipelinesForAnAppName(appName: string, state: any) {
+    const matchedPipelines = state.pipelineNames.filter((x: string) => x.includes(appName));
     return matchedPipelines;
 }
 
-function deploymentFrequencyforApplication(appName: string, applicationPipelines: string[], y: number, state: any) {
-    const metricObj = []
-    let counter = 1;
-
-    applicationPipelines.forEach((element: any) => {
-        metricObj.push(
-            [
-                {
-                    expression: `FILL( m${counter + 1},0)`,
-                    id: `e${counter + 1}`,
-                    period: DAYS.unit,
-                    region: state.region,
-                    yAxis: "left",
-                    color: "#ff7f0e",
-                    label: `${element} Deployment Frequency`,
-                    "visible": false
-                },
-            ],
-            [{ expression: `m${counter}/PERIOD(m${counter}) * ${DAYS.unit}`, label: `${element} Average (30d)`, id: `e${counter}`, color: MEAN_COLOUR, "visible": false }],
-            [
-                "Pipeline",
-                "SuccessCount",
-                "PipelineName",
-                element,
-                {
-                    period: DAYS.unit,
-                    stat: "Sum",
-                    id: `m${counter + 1}`,
-                    visible: false,
-                    label: "Deployments",
-                },
-            ],
-            ["...", { period: THIRTY_DAYS, stat: "Sum", id: `m${counter}`, label: `${element} Deployment Freq (30d)`, visible: false }])
-
-        counter += 2;
-    })
-
-    let cumulativedeploymentFrequency: string = ""
-    let cumulativeaverage30d = ""
-    for (let i = 1; i < counter; i += 2) {
-        const deploymentFrequency = `e${i + 1}`
-        const average30d = `e${i}`
-        cumulativedeploymentFrequency += deploymentFrequency + "+"
-        cumulativeaverage30d += average30d + "+"
+function deploymentFrequencyWidget(appName: string, y: number, state: any) {
+    console.log("Start of deployment frequency");
+    const pipelines = getPipelinesForAnAppName(appName, state);
+    console.log(`list of pipelines matching with ${appName} are : ${JSON.stringify(pipelines)}`);
+    const metrics = [];
+    let averageEquation = "";
+    for (let i = 0; i < pipelines.length; i++) {
+        metrics.push([
+            "Pipeline",
+            "SuccessCount",
+            "PipelineName",
+            pipelines[i],
+            {
+                period: DAYS.unit,
+                stat: "Sum",
+                id: `m${i}`,
+                visible: false,
+                label: `Deployments - ${pipelines[i]}`,
+            },
+        ]);
+        metrics.push([
+            {
+                expression: `FILL(m${i},0)`,
+                id: `e${i}`,
+                period: DAYS.unit,
+                region: state.region,
+                yAxis: "left",
+                color: "#ff7f0e",
+                label: `Deployment Frequency- ${pipelines[i]}`,
+            },
+        ]);
+        averageEquation = i === 0 ? `m${i}` : averageEquation + `,m${i}`;
     }
-    cumulativedeploymentFrequency = cumulativedeploymentFrequency.slice(0, -1);
-    cumulativeaverage30d = cumulativeaverage30d.slice(0, -1)
-
-    if(cumulativeaverage30d.includes('+'))
-    {
-        cumulativeaverage30d = `(${cumulativeaverage30d})/2`
-    }
-
-    metricObj.push(
-        [{
-            "expression": cumulativedeploymentFrequency,
-            "label": `${appName} Application Deployment Frequency`,
-            "id": "f1",
-            "color": "#ff7f0e"
-        }
-        ],
-        [{
-            "expression": cumulativeaverage30d, "label": `${appName} Application Average over 30d`, "id": "f2", "color": "#2ca02c"
-        }]
-    )
-    const deploymentFrequencyWidget = {
+    metrics.push([
+        {
+            expression: `AVG([${averageEquation}])`,
+            id: `e500`,
+            period: DAYS.unit,
+            region: state.region,
+            yAxis: "left",
+            color: "#1f77b4",
+            label: "Average Deployment Frequency",
+        },
+    ]);
+    return {
         type: "metric",
         x: 0,
         y: y,
         width: WIDGET_WIDTH,
         height: WIDGET_HEIGHT,
         properties: {
-            metrics: [metricObj],
+            metrics: metrics,
             view: "timeSeries",
             region: state.region,
-            title: `${appName} Deployment Frequency`,
+            title: `${appName} Frequency`,
             period: THIRTY_DAYS,
             stacked: false,
             yAxis: {
@@ -166,156 +138,106 @@ function deploymentFrequencyforApplication(appName: string, applicationPipelines
             },
         },
     };
-    return deploymentFrequencyWidget
 }
 
-function leadTimeForApplication(appName: string, applicationPipelines: String[], y: number, state: any) {
-    const metricObj = []
-    let counter = 1;
-    const region = state.region;
-    const unitConversion = state.widgetMappings[0].unitConversion.unit;
-    const label = state.widgetMappings[0].label;
+function otherWidgets(appName: string, y: number, state: any) {
+    return state.widgetMappings.map((mapping: any) => {
+        const region = state.region;
+        const unitConversion = mapping.unitConversion.unit;
+        const label = mapping.label;
 
-    applicationPipelines.forEach((element: any) => {
-        metricObj.push(
-            [
-                {
-                    expression: `m${counter}/${unitConversion}`,
-                    label: `${element} ${label}`,
-                    id: `e${counter}`,
-                    period: DAYS.unit,
-                    region: region,
-                    yAxis: "left",
-                    color: "#ff7f0e",
+        return {
+            type: "metric",
+            x: mapping.x,
+            y: y,
+            width: WIDGET_WIDTH,
+            height: WIDGET_HEIGHT,
+            properties: {
+                metrics: [
+                    [
+                        {
+                            expression: `m1/${unitConversion}`,
+                            label: `${label}`,
+                            id: "e2",
+                            period: DAYS.unit,
+                            region: region,
+                            yAxis: "left",
+                            color: "#ff7f0e",
+                        },
+                    ],
+                    [
+                        {
+                            expression: `FILL(m4,AVG(m4))/${unitConversion}`,
+                            label: `${label} (30d - p90)`,
+                            id: "e3",
+                            region: region,
+                            yAxis: "left",
+                            color: "#1f77b4",
+                        },
+                    ],
+                    [
+                        {
+                            expression: `FILL(m5,AVG(m5))/${unitConversion}`,
+                            label: `${label} (30d - p10)`,
+                            id: "e4",
+                            region: region,
+                            yAxis: "left",
+                            color: "#1f77b4",
+                        },
+                    ],
+                    [
+                        {
+                            expression: `FILL(m3,AVG(m3))/${unitConversion}`,
+                            label: `${label} (30d - p50)`,
+                            id: "e5",
+                            region: region,
+                            color: MEAN_COLOUR,
+                        },
+                    ],
+                    [
+                        "Pipeline",
+                        mapping.metric,
+                        "PipelineName",
+                        appName,
+                        {
+                            label: `${label}`,
+                            stat: "Average",
+                            color: "#1f77b4",
+                            period: DAYS.unit,
+                            id: "m1",
+                            visible: false,
+                        },
+                    ],
+                    [
+                        "...",
+                        { stat: "Average", period: THIRTY_DAYS, id: "m3", label: `${label} (30d)`, visible: false },
+                    ],
+                    ["...", { stat: "p90", period: THIRTY_DAYS, id: "m4", visible: false, label: `${label} (p90)` }],
+                    ["...", { stat: "p10", period: THIRTY_DAYS, id: "m5", visible: false, label: `${label} (p10)` }],
+                ],
+                view: "timeSeries",
+                region: region,
+                title: `${appName} ${label}`,
+                period: THIRTY_DAYS,
+                stacked: false,
+                yAxis: {
+                    left: {
+                        min: 0,
+                        label: mapping.unitConversion.label,
+                        showUnits: false,
+                    },
+                    right: {
+                        showUnits: true,
+                    },
                 },
-            ],
-            [
-                {
-                    expression: `FILL(m${counter + 2},AVG(m${counter + 3}))/${unitConversion}`,
-                    label: `${element} ${label} (30d - p90)`,
-                    id: `e${counter + 1}`,
-                    region: region,
-                    yAxis: "left",
-                    color: "#1f77b4",
-                },
-            ],
-            [
-                {
-                    expression: `FILL(m${counter + 3},AVG(m${counter + 4}))/${unitConversion}`,
-                    label: `${element} ${label} (30d - p10)`,
-                    id: `e${counter + 2}`,
-                    region: region,
-                    yAxis: "left",
-                    color: "#1f77b4",
-                },
-            ],
-            [
-                {
-                    expression: `FILL(m${counter + 1},AVG(m${counter + 2}))/${unitConversion}`,
-                    label: `${element} ${label} (30d - p50)`,
-                    id: `e${counter + 3}`,
-                    region: region,
-                    color: MEAN_COLOUR,
-                },
-            ],
-            [
-                "Pipeline",
-                state.widgetMappings[0].metric,
-                "PipelineName",
-                element,
-                {
-                    label: `${element} ${label}`,
-                    stat: "Average",
-                    color: "#1f77b4",
-                    period: DAYS.unit,
-                    id: `m${counter}`,
-                    visible: false,
-                },
-            ],
-            [
-                "...",
-                { stat: "Average", period: THIRTY_DAYS, id: `m${counter + 1}`, label: `${element} ${label} (30d)`, visible: false },
-            ],
-            ["...", { stat: "p90", period: THIRTY_DAYS, id: `m${counter + 2}`, visble: false, label: `${element} ${label} (p90)` }],
-            ["...", { stat: "p10", period: THIRTY_DAYS, id: `m${counter + 3}`, visible: false, label: `${element} ${label} (p10)` }],
-        )
-
-        counter += 4;
-    })
-
-    let cumulativeLeadTimeAverage: string = ""
-    let cumuluativeLeadTimeAveragep10 = ""
-    let cumuluativeLeadTimeAveragep50 = ""
-    let cumuluativeLeadTimeAveragep90 = ""
-
-    for (let i = 1; i < counter; i += 4) {
-        const leadTimeAverage = `e${i}`
-        const leadTimeAveragep10 = `e${i + 2}`
-        const leadTimeAveragep50 = `e${i + 3}`
-        const leadTimeAveragep90 = `e${i + 1}`
-        cumulativeLeadTimeAverage += leadTimeAverage + "+"
-        cumuluativeLeadTimeAveragep10 += leadTimeAveragep10 + "+"
-        cumuluativeLeadTimeAveragep50 += leadTimeAveragep50 + "+"
-        cumuluativeLeadTimeAveragep90 += leadTimeAveragep90 + "+"
-    }
-
-    cumulativeLeadTimeAverage = cumulativeLeadTimeAverage.slice(0, -1);
-    cumuluativeLeadTimeAveragep10 = cumuluativeLeadTimeAveragep10.slice(0, -1)
-    cumuluativeLeadTimeAveragep50 = cumuluativeLeadTimeAveragep50.slice(0, -1)
-    cumuluativeLeadTimeAveragep90 = cumuluativeLeadTimeAveragep90.slice(0, -1)
-
-    if(cumulativeLeadTimeAverage.includes('+') && cumuluativeLeadTimeAveragep10.includes('+') && cumuluativeLeadTimeAveragep50.includes('+') && cumuluativeLeadTimeAveragep90.includes('+'))
-    {
-        cumulativeLeadTimeAverage = `(${cumulativeLeadTimeAverage})/2`
-        cumuluativeLeadTimeAveragep10 = `(${cumuluativeLeadTimeAveragep10})/2`
-        cumuluativeLeadTimeAveragep50 = `(${cumuluativeLeadTimeAveragep50})/2`
-        cumuluativeLeadTimeAveragep90 = `(${cumuluativeLeadTimeAveragep90})/2`  
-    }
-    
-
-    metricObj.push(
-        [{
-            "expression": cumulativeLeadTimeAverage,
-            "label": `${appName} Application LeadTime`,
-            "id": "f1",
-            "color": "#ff7f0e"
-        }
-        ],
-        [{ "expression": cumuluativeLeadTimeAveragep10, "label": `${appName} Lead Time (30d - p10)`, "id": "f2", "color": "#1f77b4" }],
-        [{ "expression": cumuluativeLeadTimeAveragep50, "label": `${appName} Lead Time (30d - p50)`, "id": "f3", "color": "#1f77b4" }],
-        [{ "expression": cumuluativeLeadTimeAveragep90, "label": `${appName} Lead Time (30d - p90)`, "id": "f4", "color": "#2ca02c" }],
-    )
-    const leadTimeWidget = {
-        type: "metric",
-        x: state.widgetMappings[0].x,
-        y: y,
-        width: WIDGET_WIDTH,
-        height: WIDGET_HEIGHT,
-        properties: {
-            metrics: [metricObj],
-            view: "timeSeries",
-            region: region,
-            title: `${appName} ${label}`,
-            period: THIRTY_DAYS,
-            stacked: false,
-            yAxis: {
-                left: {
-                    min: 0,
-                    label: state.widgetMappings[0].unitConversion.label,
-                    showUnits: false,
-                },
-                right: {
-                    showUnits: true,
-                },
+                annotations: mapping.annotations,
             },
-            annotations: state.widgetMappings[0].annotations,
-        },
-    };
-    return leadTimeWidget
+        };
+    });
 }
 
-function healthWidgets(applicationName: string, y: number, state: any) {
-    const serviceName = `${applicationName}-service-health`;
+function healthWidgets(appName: string, y: number, state: any) {
+    const serviceName = `${appName}-service-health`;
 
     return state.healthWidgetMappings.map((mapping: any) => {
         const region = state.region;
@@ -393,7 +315,7 @@ function healthWidgets(applicationName: string, y: number, state: any) {
                 ],
                 view: "timeSeries",
                 region: region,
-                title: `${applicationName} ${label}`,
+                title: `${appName} ${label}`,
                 period: THIRTY_DAYS,
                 stacked: false,
                 yAxis: {
@@ -416,12 +338,11 @@ interface Dashboard {
     widgets: any[];
 }
 export class StateOfDevOpsDashboardGenerator {
-    run(eventPromise: any) {
-        return eventPromise.then(this.initializeState).then(this.getPipelines).then(this.putDashboard);
+    async run(eventPromise: any) {
+        return await eventPromise.then(this.initializeState).then(this.getPipelines).then(this.putDashboard);
     }
 
     async initializeState(state: any) {
-        state.appNames = [];
         state.appNames = await getAppNamesFromSSM(state.ssm);
         console.log("retrieved appnames are: ", state.appNames);
         if (!state.appNames || state.appNames.length === 0) return;
@@ -476,9 +397,7 @@ export class StateOfDevOpsDashboardGenerator {
         return state;
     }
 
-
-    async getPipelines(state: any) {
-
+    getPipelines(state: any) {
         return new Promise(function (resolve: any, reject: any) {
             state.codepipeline.listPipelines(function (err: any, data: any) {
                 if (err) {
@@ -488,22 +407,15 @@ export class StateOfDevOpsDashboardGenerator {
                 if (data === null) {
                     resolve(state);
                 } else {
-                    state.pipelineNames = data.pipelines.map((m: any) => {
-                        if (state.appNames.some((substring: any) => m.name.includes(substring))) { return m.name }
-                    })
-                    state.pipelineNames = state.pipelineNames.filter(function (element: any) {
-                        return element !== undefined;
-                    });
+                    state.pipelineNames = data.pipelines.map((m: any) => m.name);
                     resolve(state);
                 }
             });
         });
     }
 
-
     putDashboard(state: any) {
         state.pipelineNames = [...new Set(state.pipelineNames)].sort();
-        const period = 60 * 60 * 24 * 30;
 
         applyLimits(state);
 
@@ -586,27 +498,19 @@ export class StateOfDevOpsDashboardGenerator {
         }
 
         y += TEXT_HEIGHT;
+        const appWidgets = state.appNames.map((appName: string) => {
+            let widget = [deploymentFrequencyWidget(appName, y, state)].concat(otherWidgets(appName, y, state));
 
-        let applicationWidgets = state.appNames.map((appName: string) => {
-            const applicationPipelines = getPipelinesBasedonAppName(state, appName);
-            if (applicationPipelines.length > 0) {
-                let widget = [deploymentFrequencyforApplication(appName, applicationPipelines, y, state)].concat(
-                    leadTimeForApplication(appName, applicationPipelines, y, state)
-                );
-                
-                widget = widget.concat(healthWidgets(appName, y, state));
-                y += 2 * WIDGET_HEIGHT;
-                return widget;
-            }
-        });
-        applicationWidgets = applicationWidgets.filter(function (element: any) {
-            return element !== undefined;
+            widget = widget.concat(healthWidgets(appName, y, state));
+            console.log("Widgets are: ", JSON.stringify(widget));
+            y += 2 * WIDGET_HEIGHT;
+            return widget;
         });
 
         // flatten the nested arrays
+        dashboard.widgets = [].concat.apply(dashboard.widgets, appWidgets);
+        console.log("Final dashboard is: ", JSON.stringify(dashboard));
 
-        dashboard.widgets = [].concat.apply(dashboard.widgets)
-        dashboard.widgets = [].concat.apply(dashboard.widgets, applicationWidgets);
         return state.cloudwatch
             .putDashboard({
                 DashboardName: "StateOfDevOps-" + state.region,
@@ -615,4 +519,3 @@ export class StateOfDevOpsDashboardGenerator {
             .promise();
     }
 }
-
