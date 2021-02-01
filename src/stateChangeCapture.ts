@@ -1,35 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB, CloudWatch, CodePipeline } from "aws-sdk";
+import { DynamoDB, CloudWatch } from "aws-sdk";
 import { CloudwatchStateChangeEvent, AlarmState } from "./interface";
 import { hasStateChanged } from "./utils";
 import { createDbEntry, getLastItemById } from "./alarmEventStore";
 
 export interface LastItemState {
     lastStateItemInDynamo: DynamoDB.DocumentClient.AttributeMap | null;
-}
-
-export function sanitizePipelineName(pipelineName: string | undefined): string {
-    const sanitisePatterns = process.env.SANITISE_PATTERNS || "-pipeline";
-    const removeWhitespace = (x: string) => x.trim();
-
-    if (pipelineName) {
-        const sanitise = (pattern: string) => {
-            const matchResult = pipelineName.split(pattern);
-            if (matchResult.length > 1) {
-                return matchResult[0];
-            } else {
-                //no match
-                return undefined;
-            }
-        };
-        // I DONT GET THIS
-        // const firstMatch = (result) => result !== undefined
-        const firstMatch = (result: any) => result !== undefined;
-
-        const sanitisedName = sanitisePatterns.split(",").map(removeWhitespace).map(sanitise).find(firstMatch);
-        return sanitisedName || pipelineName;
-    }
-    return "";
 }
 
 export class StateChangeCapture {
@@ -41,14 +17,15 @@ export class StateChangeCapture {
             return;
         }
         const stateChanged = await this.hasStatusChanged(event);
+        const appName = event.detail.alarmName.replace("-service-health", "");
+        console.log("AppName is:", appName);
 
         if (stateChanged) {
-            const pipelineName = await this.findPipelineName(event);
             const score = this.getScore(event.detail.state.value as AlarmState);
             const payload = {
                 id: `ALARM_${event.detail.alarmName}`,
                 resourceId: `${event.detail.state.timestamp}`,
-                pipelineName: pipelineName,
+                appName,
                 bookmarked: "N",
                 value: score,
                 state: event.detail.state.value,
@@ -96,43 +73,11 @@ export class StateChangeCapture {
         return false;
     }
 
-    private async findPipelineName(event: CloudwatchStateChangeEvent): Promise<string> {
-        if (this.state && this.state.lastStateItemInDynamo && this.state.lastStateItemInDynamo.pipelineName) {
-            return this.state.lastStateItemInDynamo.pipelineName;
-        }
-        const pipelineNames = await this.getPipelineNames();
-        const pipelineName = pipelineNames
-            ? pipelineNames.find((name) =>
-                  name && event.detail && event.detail.alarmName
-                      ? event.detail.alarmName.toLowerCase().includes(name.toLowerCase())
-                      : false,
-              )
-            : "";
-        if (!pipelineName) {
-            throw new Error("pipelineName matching with alarmName was not found");
-        }
-        return pipelineName;
-    }
-
     private async getPreviousStateFromDynamo(event: CloudwatchStateChangeEvent): Promise<string> {
         const data = await getLastItemById("ALARM_" + event.detail.alarmName);
         this.state.lastStateItemInDynamo = data.Items && data.Items.length > 0 ? data.Items[0] : null;
         const prevState = data.Items && data.Items.length > 0 ? data.Items[0].state : null;
 
         return prevState;
-    }
-
-    private async getPipelineNames(): Promise<string[]> {
-        const codePipeline = new CodePipeline();
-        try {
-            const response = await codePipeline.listPipelines().promise();
-            if (response.pipelines && response.pipelines.length > 0) {
-                return response.pipelines.map((m) => sanitizePipelineName(m.name));
-            } else {
-                return [];
-            }
-        } catch (e) {
-            throw new Error(`There was an issue retrieving pipelines: ${e}`);
-        }
     }
 }

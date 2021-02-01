@@ -28,7 +28,7 @@ export const handler = async (event: DynamoDBStreamEvent) => {
                         const newRecord = converter(record.dynamodb.NewImage);
                         const resourceId = newRecord.resourceId;
 
-                        if (resourceId === "Pipeline_Attribute") {
+                        if (resourceId === "Application_Attribute") {
                             await putMetric(newRecord);
                             break;
                         }
@@ -41,11 +41,11 @@ export const handler = async (event: DynamoDBStreamEvent) => {
                         const newRecord = converter(record.dynamodb.NewImage);
                         const id = newRecord.id;
                         if (id.startsWith("ALARM_")) {
-                            await updatePipelineScore(newRecord);
+                            await updateApplicationScore(newRecord);
                             break;
                         }
                         const resourceId = newRecord.resourceId;
-                        if (resourceId === "Pipeline_Attribute") {
+                        if (resourceId === "Application_Attribute") {
                             await putMetric(newRecord);
                             break;
                         }
@@ -66,15 +66,15 @@ export const handler = async (event: DynamoDBStreamEvent) => {
     return "Stream handling completed";
 };
 
-async function updatePipelineScore(newRecord: any) {
-    const list = await queryAllUnbookmaredEvents(newRecord.pipelineName);
+async function updateApplicationScore(newRecord: any) {
+    const list = await queryAllUnbookmaredEvents(newRecord.appName);
     const sortedList = sortItemsByResourceId(list);
 
     if (sortedList && sortedList.length > 0) {
-        const score = await calculateTheScore(sortedList, newRecord.pipelineName);
+        const score = await calculateTheScore(sortedList, newRecord.appName);
         const payload = {
-            id: newRecord.pipelineName,
-            resourceId: "Pipeline_Attribute",
+            id: newRecord.appName,
+            resourceId: "Application_Attribute",
             score: score,
             lastBookmarkedItem: `${sortedList[sortedList.length - 1].id}#${
                 sortedList[sortedList.length - 1].resourceId
@@ -90,13 +90,13 @@ async function updatePipelineScore(newRecord: any) {
     }
 }
 
-async function calculateTheScore(sortedList: any, pipelineName: string) {
+async function calculateTheScore(sortedList: any, appName: string) {
     let score = 0;
     sortedList.forEach((item: any) => {
         score = score + item.value;
     });
 
-    const item = await getDbEntryById(pipelineName, "Pipeline_Attribute");
+    const item = await getDbEntryById(appName, "Application_Attribute");
     if (item && item.score) {
         score = score + item.score;
     }
@@ -105,7 +105,7 @@ async function calculateTheScore(sortedList: any, pipelineName: string) {
 
 async function putMetric(newRecord: any) {
     const cw = new CloudWatch();
-    const pipelineName = newRecord.id;
+    const appName = newRecord.id;
     const timeStamp = new Date();
 
     await cw
@@ -116,7 +116,7 @@ async function putMetric(newRecord: any) {
                     Dimensions: [
                         {
                             Name: "product",
-                            Value: pipelineName,
+                            Value: appName,
                         },
                     ],
                     Timestamp: timeStamp,

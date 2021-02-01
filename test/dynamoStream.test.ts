@@ -30,21 +30,21 @@ describe("dynamoStream", () => {
                     value: 1,
                     id: "ALARM_flaky-service",
                     resourceId: "2019-12-30T00:47:41.171+0000",
-                    pipelineName: "flaky-service-pipeline",
+                    appName: "flaky-service-pipeline",
                     state: "Alarm",
                 },
                 {
                     value: 1,
                     id: "ALARM_flaky-service-lambda-errors",
                     resourceId: "2019-12-30T01:47:41.171+0000",
-                    pipelineName: "flaky-service-pipeline",
+                    appName: "flaky-service-pipeline",
                     state: "Alarm",
                 },
                 {
                     value: -1,
                     id: "ALARM_flaky-service-lambda-errors",
                     resourceId: "2019-12-30T02:47:41.171+0000",
-                    pipelineName: "flaky-service-pipeline",
+                    appName: "flaky-service-pipeline",
                     state: "OK",
                 },
             ].forEach((item) => expect(dynamoPutSpy).toBeCalledWith(item));
@@ -59,7 +59,7 @@ describe("dynamoStream", () => {
                 score: 3,
                 id: "flaky-service-pipeline",
                 lastBookmarkedItem: "ALARM_flaky-service-lambda-errors#2019-12-30T02:47:41.171+0000",
-                resourceId: "Pipeline_Attribute",
+                resourceId: "Application_Attribute",
             };
             expect(dynamoPutSpy).toBeCalledWith(expected);
         });
@@ -72,7 +72,7 @@ describe("dynamoStream", () => {
                 score: 1,
                 id: "flaky-service-pipeline",
                 lastBookmarkedItem: "ALARM_flaky-service-lambda-errors#2019-12-30T02:47:41.171+0000",
-                resourceId: "Pipeline_Attribute",
+                resourceId: "Application_Attribute",
             };
             expect(dynamoPutSpy).toBeCalledWith(expected);
         });
@@ -88,7 +88,7 @@ describe("dynamoStream", () => {
         });
     });
 
-    describe("Pipeline_Attribute item", () => {
+    describe("Application_Attribute item", () => {
         it("Insert event- should put metrics using the incoming score", async () => {
             const pipelineEvent: DynamoDBStreamEvent = { ...dynamoMockStreamEvent };
             pipelineEvent.Records[0].dynamodb = mockPipelineItemDynamoObject;
@@ -153,7 +153,7 @@ function mockgetPipelineItem(previousScore: number) {
             score: previousScore,
             id: "flaky-service-pipeline",
             lastBookmarkedItem: "ALARM_flaky-service-lambda-errors#2019-12-30T02:47:41.171+0000",
-            resourceId: "Pipeline_Attribute",
+            resourceId: "Application_Attribute",
         }),
     );
 }
@@ -215,7 +215,7 @@ const mockPipelineItemDynamoObject = {
     ApproximateCreationDateTime: 1570668037,
     Keys: {
         resourceId: {
-            S: "Pipeline_Attribute",
+            S: "Application_Attribute",
         },
         id: {
             S: "flaky-service-pipeline",
@@ -229,7 +229,7 @@ const mockPipelineItemDynamoObject = {
             S: "ALARM_flaky-service#2020-01-06T03:12:41.168+0000",
         },
         resourceId: {
-            S: "Pipeline_Attribute",
+            S: "Application_Attribute",
         },
         score: {
             N: "1",

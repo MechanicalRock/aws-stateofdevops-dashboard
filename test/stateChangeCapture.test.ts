@@ -1,7 +1,6 @@
 /* eslint-disable quotes */
 import * as AWSMock from "aws-sdk-mock";
 import { handler } from "../src/stateChangeHandler";
-import { sanitizePipelineName } from "../src/stateChangeCapture";
 import { CloudwatchStateChangeEvent } from "../src/interface.d";
 import { AlarmHistoryItem, AlarmHistoryItems } from "aws-sdk/clients/cloudwatch";
 import * as alarmEventStore from "../src/alarmEventStore";
@@ -22,90 +21,6 @@ describe("stateChangeCapture", () => {
         eventStoreSpy.mockRestore();
     });
 
-    describe("sanitizePipelineName", () => {
-        describe("no naming convention defined", () => {
-            beforeEach(() => {
-                delete process.env.SANITISE_PATTERNS;
-            });
-
-            const examples = [
-                ["foo-pipeline", "foo"],
-                ["foo-pipeline-123", "foo"],
-                ["foo_pipeline", "foo_pipeline"],
-                ["foo_pipeline397654", "foo_pipeline397654"],
-                ["foo-codePipeline", "foo-codePipeline"],
-                ["foo-codePipeline0987655", "foo-codePipeline0987655"],
-                ["foo_codePipeline", "foo_codePipeline"],
-                ["foo_codePipeline876tghujn", "foo_codePipeline876tghujn"],
-                ["foo-my-pipeline", "foo-my"],
-                ["foo-my-pipeline1234345jkdk", "foo-my"],
-                ["foo_my-pipeline1234345jkdk", "foo_my"],
-                ["foo_my_pipeline1234345jkdk", "foo_my_pipeline1234345jkdk"],
-            ];
-            it.each(examples)("should default to '-pipeline' only", (actual, expected) => {
-                expect(sanitizePipelineName(actual)).toEqual(expected);
-            });
-        });
-
-        describe("single naming convention defined", () => {
-            beforeEach(() => {
-                process.env.SANITISE_PATTERNS = "-my-pipeline";
-            });
-
-            const examples = [
-                ["foo-pipeline", "foo-pipeline"],
-                ["foo-pipeline-123", "foo-pipeline-123"],
-                ["foo_pipeline", "foo_pipeline"],
-                ["foo_pipeline397654", "foo_pipeline397654"],
-                ["foo-codePipeline", "foo-codePipeline"],
-                ["foo-codePipeline0987655", "foo-codePipeline0987655"],
-                ["foo_codePipeline", "foo_codePipeline"],
-                ["foo_codePipeline876tghujn", "foo_codePipeline876tghujn"],
-                ["foo-my-pipeline", "foo"],
-                ["foo-my-pipeline1234345jkdk", "foo"],
-                ["foo_my-pipeline1234345jkdk", "foo_my-pipeline1234345jkdk"],
-                ["foo_my_pipeline1234345jkdk", "foo_my_pipeline1234345jkdk"],
-            ];
-
-            it.each(examples)("should sanitise matching naming patterns", (actual, expected) => {
-                expect(sanitizePipelineName(actual)).toEqual(expected);
-            });
-        });
-
-        describe("multiple naming convention defined", () => {
-            beforeEach(() => {
-                process.env.SANITISE_PATTERNS =
-                    "-codePipeline,_codePipeline,-my-pipeline,_my-pipeline,-my_pipeline,_my_pipeline,-pipeline,_pipeline";
-            });
-
-            const examples = [
-                ["foo-pipeline", "foo"],
-                ["foo-pipeline-123", "foo"],
-                ["foo_pipeline", "foo"],
-                ["foo_pipeline397654", "foo"],
-                ["foo-codePipeline", "foo"],
-                ["foo-codePipeline0987655", "foo"],
-                ["foo_codePipeline", "foo"],
-                ["foo_codePipeline876tghujn", "foo"],
-                ["foo-my-pipeline", "foo"],
-                ["foo-my-pipeline1234345jkdk", "foo"],
-                ["foo_my-pipeline1234345jkdk", "foo"],
-                ["foo_my_pipeline1234345jkdk", "foo"],
-                ["foo-this-doesnt-match-anything", "foo-this-doesnt-match-anything"],
-            ];
-
-            it.each(examples)("should sanitise matching naming patterns in order of preference", (actual, expected) => {
-                expect(sanitizePipelineName(actual)).toEqual(expected);
-            });
-
-            it.each(examples)("should strip whitespace from SANITISE_PATTERNS constiable", (actual, expected) => {
-                process.env.SANITISE_PATTERNS =
-                    "-codePipeline  ,   _codePipeline   ,-my-pipeline,_my-pipeline, -my_pipeline,_my_pipeline,    -pipeline  ,  _pipeline";
-                expect(sanitizePipelineName(actual)).toEqual(expected);
-            });
-        });
-    });
-
     describe("when previous state exists", () => {
         it("should set value to -1 when alarm state changes to OK", async () => {
             await whenHandlerInvoked(givenPreviousStateExistsInDynamo("OK", "ALARM"));
@@ -113,7 +28,7 @@ describe("stateChangeCapture", () => {
                 Item: {
                     id: "ALARM_flaky-service-alarm",
                     resourceId: "2019-12-12T06:25:41.200+0000",
-                    pipelineName: "pipeline5",
+                    appName: "pipeline5",
                     bookmarked: "N",
                     state: "OK",
                     value: -1,
@@ -129,7 +44,7 @@ describe("stateChangeCapture", () => {
                 Item: {
                     id: "ALARM_flaky-service-alarm",
                     resourceId: "2019-12-12T06:25:41.200+0000",
-                    pipelineName: "pipeline5",
+                    appName: "pipeline5",
                     bookmarked: "N",
                     state: "ALARM",
                     value: 1,
@@ -158,7 +73,7 @@ describe("stateChangeCapture", () => {
                     Item: {
                         id: "ALARM_flaky-service-alarm",
                         resourceId: "2019-12-12T06:25:41.200+0000",
-                        pipelineName: "flaky-service",
+                        appName: "flaky-service",
                         bookmarked: "N",
                         state: "OK",
                         value: 0,
@@ -174,7 +89,7 @@ describe("stateChangeCapture", () => {
                     Item: {
                         id: "ALARM_flaky-service-alarm",
                         resourceId: "2019-12-12T06:25:41.200+0000",
-                        pipelineName: "flaky-service",
+                        appName: "flaky-service",
                         bookmarked: "N",
                         state: "ALARM",
                         value: 1,
