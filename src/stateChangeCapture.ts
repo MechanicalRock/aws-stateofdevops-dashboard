@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB, CloudWatch } from "aws-sdk";
+import { DynamoDB, CloudWatch, SSM } from "aws-sdk";
 import { CloudwatchStateChangeEvent, AlarmState } from "./interface";
 import { hasStateChanged } from "./utils";
 import { createDbEntry, getLastItemById } from "./alarmEventStore";
+import { getAppNamesFromSSM } from "./utils";
 
 export interface LastItemState {
     lastStateItemInDynamo: DynamoDB.DocumentClient.AttributeMap | null;
@@ -17,11 +18,14 @@ export class StateChangeCapture {
             return;
         }
         const stateChanged = await this.hasStatusChanged(event);
-        const appName = event.detail.alarmName.replace("-service-health", "");
-        console.log("AppName is:", appName);
 
         if (stateChanged) {
             const score = this.getScore(event.detail.state.value as AlarmState);
+            const ssm = new SSM();
+            const appNames = await getAppNamesFromSSM(ssm);
+            const appName = appNames.find((x) => event.detail.alarmName.includes(x));
+            console.log("AppName is:", appName);
+            if (!appName) return;
             const payload = {
                 id: `ALARM_${event.detail.alarmName}`,
                 resourceId: `${event.detail.state.timestamp}`,
