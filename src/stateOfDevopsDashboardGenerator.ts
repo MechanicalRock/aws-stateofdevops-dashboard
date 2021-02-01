@@ -49,49 +49,50 @@ function getPipelinesForAnAppName(appName: string, state: any) {
 }
 
 function deploymentFrequencyWidget(appName: string, y: number, state: any) {
-    console.log("Start of deployment frequency");
     const pipelines = getPipelinesForAnAppName(appName, state);
     console.log(`list of pipelines matching with ${appName} are : ${JSON.stringify(pipelines)}`);
     const metrics = [];
     let averageEquation = "";
-    for (let i = 0; i < pipelines.length; i++) {
+
+    if (pipelines && pipelines.length > 0) {
+        for (let i = 0; i < pipelines.length; i++) {
+            metrics.push([
+                "Pipeline",
+                "SuccessCount",
+                "PipelineName",
+                pipelines[i],
+                {
+                    period: DAYS.unit,
+                    stat: "Sum",
+                    id: `m${i}`,
+                    visible: false,
+                    label: `Deployments - ${pipelines[i]}`,
+                },
+            ]);
+            metrics.push([
+                {
+                    expression: `FILL(m${i},0)`,
+                    id: `e${i}`,
+                    period: DAYS.unit,
+                    region: state.region,
+                    yAxis: "left",
+                    label: `Deployment Frequency- ${pipelines[i]}`,
+                },
+            ]);
+            averageEquation = i === 0 ? `e${i}` : averageEquation + `,e${i}`;
+        }
         metrics.push([
-            "Pipeline",
-            "SuccessCount",
-            "PipelineName",
-            pipelines[i],
             {
-                period: DAYS.unit,
-                stat: "Sum",
-                id: `m${i}`,
-                visible: false,
-                label: `Deployments - ${pipelines[i]}`,
-            },
-        ]);
-        metrics.push([
-            {
-                expression: `FILL(m${i},0)`,
-                id: `e${i}`,
+                expression: `AVG([${averageEquation}])`,
+                id: `e500`,
                 period: DAYS.unit,
                 region: state.region,
                 yAxis: "left",
-                color: "#ff7f0e",
-                label: `Deployment Frequency- ${pipelines[i]}`,
+                color: "#1f77b4",
+                label: "Average Deployment Frequency",
             },
         ]);
-        averageEquation = i === 0 ? `m${i}` : averageEquation + `,m${i}`;
     }
-    metrics.push([
-        {
-            expression: `AVG([${averageEquation}])`,
-            id: `e500`,
-            period: DAYS.unit,
-            region: state.region,
-            yAxis: "left",
-            color: "#1f77b4",
-            label: "Average Deployment Frequency",
-        },
-    ]);
     return {
         type: "metric",
         x: 0,
@@ -141,11 +142,54 @@ function deploymentFrequencyWidget(appName: string, y: number, state: any) {
 }
 
 function otherWidgets(appName: string, y: number, state: any) {
+    const pipelines = getPipelinesForAnAppName(appName, state);
+
     return state.widgetMappings.map((mapping: any) => {
         const region = state.region;
         const unitConversion = mapping.unitConversion.unit;
         const label = mapping.label;
 
+        const metrics = [];
+        let averageEquation = "";
+        if (pipelines && pipelines.length > 0) {
+            for (let i = 0; i < pipelines.length; i++) {
+                metrics.push([
+                    "Pipeline",
+                    mapping.metric,
+                    "PipelineName",
+                    pipelines[i],
+                    {
+                        label: `${label}- ${pipelines[i]}`,
+                        stat: "Average",
+                        period: DAYS.unit,
+                        id: `m${i}`,
+                        visible: false,
+                    },
+                ]);
+                metrics.push([
+                    {
+                        expression: `m${i}/${unitConversion}`,
+                        label: `${label}- ${pipelines[i]}`,
+                        id: `e${i}`,
+                        period: DAYS.unit,
+                        region: state.region,
+                        yAxis: "left",
+                    },
+                ]);
+                averageEquation = i === 0 ? `e${i}` : averageEquation + `,e${i}`;
+            }
+            metrics.push([
+                {
+                    expression: `AVG([${averageEquation}])`,
+                    id: `e500`,
+                    period: DAYS.unit,
+                    region: state.region,
+                    yAxis: "left",
+                    color: "#1f77b4",
+                    label: `Average ${label}`,
+                },
+            ]);
+        }
         return {
             type: "metric",
             x: mapping.x,
@@ -153,68 +197,7 @@ function otherWidgets(appName: string, y: number, state: any) {
             width: WIDGET_WIDTH,
             height: WIDGET_HEIGHT,
             properties: {
-                metrics: [
-                    [
-                        {
-                            expression: `m1/${unitConversion}`,
-                            label: `${label}`,
-                            id: "e2",
-                            period: DAYS.unit,
-                            region: region,
-                            yAxis: "left",
-                            color: "#ff7f0e",
-                        },
-                    ],
-                    [
-                        {
-                            expression: `FILL(m4,AVG(m4))/${unitConversion}`,
-                            label: `${label} (30d - p90)`,
-                            id: "e3",
-                            region: region,
-                            yAxis: "left",
-                            color: "#1f77b4",
-                        },
-                    ],
-                    [
-                        {
-                            expression: `FILL(m5,AVG(m5))/${unitConversion}`,
-                            label: `${label} (30d - p10)`,
-                            id: "e4",
-                            region: region,
-                            yAxis: "left",
-                            color: "#1f77b4",
-                        },
-                    ],
-                    [
-                        {
-                            expression: `FILL(m3,AVG(m3))/${unitConversion}`,
-                            label: `${label} (30d - p50)`,
-                            id: "e5",
-                            region: region,
-                            color: MEAN_COLOUR,
-                        },
-                    ],
-                    [
-                        "Pipeline",
-                        mapping.metric,
-                        "PipelineName",
-                        appName,
-                        {
-                            label: `${label}`,
-                            stat: "Average",
-                            color: "#1f77b4",
-                            period: DAYS.unit,
-                            id: "m1",
-                            visible: false,
-                        },
-                    ],
-                    [
-                        "...",
-                        { stat: "Average", period: THIRTY_DAYS, id: "m3", label: `${label} (30d)`, visible: false },
-                    ],
-                    ["...", { stat: "p90", period: THIRTY_DAYS, id: "m4", visible: false, label: `${label} (p90)` }],
-                    ["...", { stat: "p10", period: THIRTY_DAYS, id: "m5", visible: false, label: `${label} (p10)` }],
-                ],
+                metrics: metrics,
                 view: "timeSeries",
                 region: region,
                 title: `${appName} ${label}`,
@@ -502,14 +485,13 @@ export class StateOfDevOpsDashboardGenerator {
             let widget = [deploymentFrequencyWidget(appName, y, state)].concat(otherWidgets(appName, y, state));
 
             widget = widget.concat(healthWidgets(appName, y, state));
-            console.log("Widgets are: ", JSON.stringify(widget));
             y += 2 * WIDGET_HEIGHT;
             return widget;
         });
 
         // flatten the nested arrays
         dashboard.widgets = [].concat.apply(dashboard.widgets, appWidgets);
-        console.log("Final dashboard is: ", JSON.stringify(dashboard));
+        // console.log("Final dashboard is: ", JSON.stringify(dashboard));
 
         return state.cloudwatch
             .putDashboard({

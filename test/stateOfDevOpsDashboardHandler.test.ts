@@ -8,7 +8,6 @@ import sinonChai from "sinon-chai";
 chai.use(sinonChai);
 const expect = chai.expect;
 import sinon from "sinon";
-import { getAppNamesFromSSM } from "../src/utils";
 
 const index = require("../src/stateOfDevopsDashboardHandler");
 
@@ -34,7 +33,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             dashboard: "../sample-data/sdo-dashboard-single-pipeline",
             uniquePipelines: 1,
             matchedPipelines: 1,
-            matchedAppNames: 1,
+            matchedAppNames: 2,
             pipelines: {
                 pipelines: [
                     {
@@ -118,7 +117,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
             expectTruncated: true,
             uniquePipelines: 50,
             matchedPipelines: 50,
-            matchedAppNames: 1,
+            matchedAppNames: 2,
             pipelines: {
                 pipelines: generatePipelines(50),
             },
@@ -219,7 +218,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
                 });
             } else {
                 const widgetsPerApplication = 4;
-                it(`should generate ${widgetsPerApplication} dashboards per application`, () => {
+                it(`should generate ${widgetsPerApplication} widgets per application`, () => {
                     return LambdaTester(index.handler)
                         .event(scenario.event)
                         .expectResult((result, additional) => {
@@ -253,7 +252,6 @@ describe("stateOfDevOpsDashboardHandler", () => {
                 });
 
                 it("For each Pipeline there should be two pipeline metrics and two service health metrics", async () => {
-                    const result = SSMGetParameterSpy;
                     return LambdaTester(index.handler)
                         .event(scenario.event)
                         .expectResult((result, additional) => {
@@ -263,7 +261,10 @@ describe("stateOfDevOpsDashboardHandler", () => {
                             pipelineNames.forEach((name, idx) => {
                                 if (name.includes(result)) {
                                     const startIdx = idx * widgetsPerApplication;
-                                    const widgetsForPipeline = metricWidgets.slice(startIdx, startIdx + widgetsPerApplication);
+                                    const widgetsForPipeline = metricWidgets.slice(
+                                        startIdx,
+                                        startIdx + widgetsPerApplication,
+                                    );
                                     let pipelineMetricsCounter = 0;
                                     let serviceHealthMetricsCounter = 0;
                                     widgetsForPipeline.forEach((widget) => {
@@ -273,7 +274,6 @@ describe("stateOfDevOpsDashboardHandler", () => {
                                         if (JSON.stringify(widget.properties.metrics).includes("-service-health")) {
                                             serviceHealthMetricsCounter = serviceHealthMetricsCounter + 1;
                                         }
-
                                     });
                                     expect(pipelineMetricsCounter).to.equal(2);
                                     expect(serviceHealthMetricsCounter).to.equal(2);
