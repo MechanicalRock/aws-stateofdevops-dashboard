@@ -12,7 +12,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ['stateofdevops', 'dashboard', 'sdo', 'service-health', 'monitoring','mttr', 'mtbf']
     HomePageUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
-    SemanticVersion: 1.0.8
+    SemanticVersion: 1.0.9
     SourceCodeUrl: https://github.com/MechanicalRock/aws-stateofdevops-dashboard
 
 Parameters:
@@ -142,6 +142,12 @@ Resources:
                 - cloudwatch:PutDashboard
                 - codepipeline:ListPipelines
               Resource: "*"
+        - Statement:
+          - Effect: Allow
+            Action: 
+              - ssm:GetParameters
+              - ssm:GetParameter
+            Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/state-of-devops/app-names"
       PermissionsBoundary:
         !If [HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
