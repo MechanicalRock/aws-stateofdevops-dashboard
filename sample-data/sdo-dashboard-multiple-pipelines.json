@@ -55,6 +55,73 @@
       "type": "metric",
       "x": 0,
       "y": 4,
+      "width": 24,
+      "height": 4,
+      "properties": {
+        "metrics": [
+          [
+            "Pipeline",
+            "SuccessCount",
+            "account",
+            "123456789012",
+            {
+              "id": "m1",
+              "visible": true,
+              "label": "Deployment-Frequency (Day)"
+            }
+          ],
+          [
+            ".",
+            "DeliveryLeadTime",
+            ".",
+            ".",
+            {
+              "id": "m2",
+              "visible": true,
+              "label": "Lead Time"
+            }
+          ],
+          [
+            "Operations",
+            "MTTR",
+            ".",
+            ".",
+            {
+              "id": "m3",
+              "visible": true,
+              "label": " MTTR"
+            }
+          ],
+          [
+            ".",
+            "MTBF",
+            ".",
+            ".",
+            {
+              "id": "m4",
+              "visible": true,
+              "label": "MTBF"
+            }
+          ],
+          [
+            {
+              "expression": "(m4-m3)/m4",
+              "label": "Availability % (approximately)",
+              "id": "e1"
+            }
+          ]
+        ],
+        "view": "singleValue",
+        "stacked": false,
+        "stat": "Average",
+        "period": 2592000,
+        "title": "Account Level Metrics"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 8,
       "width": 12,
       "height": 6,
       "properties": {
@@ -176,7 +243,7 @@
     {
       "type": "metric",
       "x": 12,
-      "y": 4,
+      "y": 8,
       "width": 12,
       "height": 6,
       "properties": {
@@ -298,7 +365,7 @@
     {
       "type": "metric",
       "x": 0,
-      "y": 10,
+      "y": 14,
       "width": 12,
       "height": 6,
       "properties": {
@@ -403,7 +470,7 @@
     {
       "type": "metric",
       "x": 12,
-      "y": 10,
+      "y": 14,
       "width": 12,
       "height": 6,
       "properties": {
@@ -508,7 +575,7 @@
     {
       "type": "metric",
       "x": 0,
-      "y": 16,
+      "y": 20,
       "width": 12,
       "height": 6,
       "properties": {
@@ -586,7 +653,7 @@
     {
       "type": "metric",
       "x": 12,
-      "y": 16,
+      "y": 20,
       "width": 12,
       "height": 6,
       "properties": {
@@ -664,7 +731,7 @@
     {
       "type": "metric",
       "x": 0,
-      "y": 22,
+      "y": 26,
       "width": 12,
       "height": 6,
       "properties": {
@@ -769,7 +836,7 @@
     {
       "type": "metric",
       "x": 12,
-      "y": 22,
+      "y": 26,
       "width": 12,
       "height": 6,
       "properties": {

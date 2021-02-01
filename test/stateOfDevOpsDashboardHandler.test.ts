@@ -224,7 +224,7 @@ describe("stateOfDevOpsDashboardHandler", () => {
                         .expectResult((result, additional) => {
                             const dashboard = JSON.parse(putDashboardSpy.getCall(0).args[0].DashboardBody);
                             const metricWidgets = dashboard.widgets.filter((w) => w?.type === "metric");
-                            expect(metricWidgets.length).to.equal(widgetsPerApplication * scenario.matchedAppNames);
+                            expect(metricWidgets.length).to.equal(widgetsPerApplication * scenario.matchedAppNames + 1);
                         });
                 });
                 it("should generate 5 text widgets - to explain each metric + interpretation", () => {

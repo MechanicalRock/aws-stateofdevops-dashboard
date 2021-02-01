@@ -43,6 +43,38 @@ const applyLimits = (state: any) => {
     }
 };
 
+function accountLevelMetrics(state: any, y: number) {
+    const accountLevelMetricsWidget = {
+        type: "metric",
+        x: 0,
+        y: y,
+        width: 24,
+        height: 4,
+        properties: {
+            metrics: [
+                [
+                    "Pipeline",
+                    "SuccessCount",
+                    "account",
+                    `${state.event.account}`,
+                    { id: "m1", visible: true, label: "Deployment-Frequency (Day)" },
+                ],
+                [".", "DeliveryLeadTime", ".", ".", { id: "m2", visible: true, label: "Lead Time" }],
+                ["Operations", "MTTR", ".", ".", { id: "m3", visible: true, label: " MTTR" }],
+                [".", "MTBF", ".", ".", { id: "m4", visible: true, label: "MTBF" }],
+                [{ expression: "(m4-m3)/m4", label: "Availability % (approximately)", id: "e1" }],
+            ],
+            view: "singleValue",
+            stacked: false,
+            region: state.region,
+            stat: "Average",
+            period: 2592000,
+            title: "Account Level Metrics",
+        },
+    };
+    return accountLevelMetricsWidget;
+}
+
 function getPipelinesForAnAppName(appName: string, state: any) {
     const matchedPipelines = state.pipelineNames.filter((x: string) => x.includes(appName));
     return matchedPipelines;
@@ -481,6 +513,9 @@ export class StateOfDevOpsDashboardGenerator {
         }
 
         y += TEXT_HEIGHT;
+        dashboard.widgets.push(accountLevelMetrics(state, y));
+        y += TEXT_HEIGHT;
+
         const appWidgets = state.appNames.map((appName: string) => {
             let widget = [deploymentFrequencyWidget(appName, y, state)].concat(otherWidgets(appName, y, state));
 
