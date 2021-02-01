@@ -30,21 +30,21 @@ describe("dynamoStream", () => {
                     value: 1,
                     id: "ALARM_flaky-service",
                     resourceId: "2019-12-30T00:47:41.171+0000",
-                    appName: "flaky-service-pipeline",
+                    appName: "flaky-service",
                     state: "Alarm",
                 },
                 {
                     value: 1,
                     id: "ALARM_flaky-service-lambda-errors",
                     resourceId: "2019-12-30T01:47:41.171+0000",
-                    appName: "flaky-service-pipeline",
+                    appName: "flaky-service",
                     state: "Alarm",
                 },
                 {
                     value: -1,
                     id: "ALARM_flaky-service-lambda-errors",
                     resourceId: "2019-12-30T02:47:41.171+0000",
-                    appName: "flaky-service-pipeline",
+                    appName: "flaky-service",
                     state: "OK",
                 },
             ].forEach((item) => expect(dynamoPutSpy).toBeCalledWith(item));
@@ -57,7 +57,7 @@ describe("dynamoStream", () => {
             await handler(dynamoMockStreamEvent);
             const expected = {
                 score: 3,
-                id: "flaky-service-pipeline",
+                id: "flaky-service",
                 lastBookmarkedItem: "ALARM_flaky-service-lambda-errors#2019-12-30T02:47:41.171+0000",
                 resourceId: "Application_Attribute",
             };
@@ -70,7 +70,7 @@ describe("dynamoStream", () => {
             await handler(dynamoMockStreamEvent);
             const expected = {
                 score: 1,
-                id: "flaky-service-pipeline",
+                id: "flaky-service",
                 lastBookmarkedItem: "ALARM_flaky-service-lambda-errors#2019-12-30T02:47:41.171+0000",
                 resourceId: "Application_Attribute",
             };
@@ -151,7 +151,7 @@ function mockgetPipelineItem(previousScore: number) {
     getpipelineItemSpy.mockImplementation(
         jest.fn().mockReturnValue({
             score: previousScore,
-            id: "flaky-service-pipeline",
+            id: "flaky-service",
             lastBookmarkedItem: "ALARM_flaky-service-lambda-errors#2019-12-30T02:47:41.171+0000",
             resourceId: "Application_Attribute",
         }),
@@ -173,9 +173,9 @@ function mockReturn3UnbookedmarkedItems() {
                 {
                     value: 1,
                     bookmarked: "N",
-                    id: "ALARM_flaky-service",
+                    id: "ALARM_flaky",
                     resourceId: "2019-12-30T00:47:41.171+0000",
-                    pipelineName: "flaky-service-pipeline",
+                    appName: "flaky-service",
                     state: "Alarm",
                 },
                 {
@@ -183,7 +183,7 @@ function mockReturn3UnbookedmarkedItems() {
                     bookmarked: "N",
                     id: "ALARM_flaky-service-lambda-errors",
                     resourceId: "2019-12-30T01:47:41.171+0000",
-                    pipelineName: "flaky-service-pipeline",
+                    appName: "flaky-service",
                     state: "Alarm",
                 },
                 {
@@ -191,7 +191,7 @@ function mockReturn3UnbookedmarkedItems() {
                     bookmarked: "N",
                     id: "ALARM_flaky-service-lambda-errors",
                     resourceId: "2019-12-30T02:47:41.171+0000",
-                    pipelineName: "flaky-service-pipeline",
+                    appName: "flaky-service",
                     state: "OK",
                 },
             ],
@@ -218,12 +218,12 @@ const mockPipelineItemDynamoObject = {
             S: "Application_Attribute",
         },
         id: {
-            S: "flaky-service-pipeline",
+            S: "flaky-service",
         },
     },
     NewImage: {
         id: {
-            S: "flaky-service-pipeline",
+            S: "flaky-service",
         },
         lastBookmarkedItem: {
             S: "ALARM_flaky-service#2020-01-06T03:12:41.168+0000",
@@ -261,8 +261,8 @@ const dynamoMockStreamEvent: DynamoDBStreamEvent = {
                     resourceId: {
                         S: "1570668036460",
                     },
-                    pipelineName: {
-                        S: "flaky-service-pipeline",
+                    appName: {
+                        S: "flaky-service",
                     },
                     id: {
                         S: "ALARM_Flaky-service",
