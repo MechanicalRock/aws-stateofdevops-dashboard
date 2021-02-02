@@ -5,7 +5,7 @@ import * as alarmEventStore from "../src/alarmEventStore";
 
 let dynamoPutSpy;
 let queryUnbookedmarkEventsSpy;
-let getpipelineItemSpy;
+let getApplicationItemSpy;
 let cloudWatchMetricSpy;
 
 describe("dynamoStream", () => {
@@ -22,7 +22,7 @@ describe("dynamoStream", () => {
     describe("Alarm item stream - multiple unbookmarked items in dynamo", () => {
         it("should remove the bookmark key from the items and store them back in dynamo", async () => {
             mockReturn3UnbookedmarkedItems();
-            mockReturnEmptyPipelineItem();
+            mockReturnEmptyApplicationItem();
             await handler(dynamoMockStreamEvent);
 
             [
@@ -66,7 +66,7 @@ describe("dynamoStream", () => {
 
         it("should calculate the total score when there is no previouse score in dynamo", async () => {
             mockReturn3UnbookedmarkedItems();
-            mockReturnEmptyPipelineItem();
+            mockReturnEmptyApplicationItem();
             await handler(dynamoMockStreamEvent);
             const expected = {
                 score: 1,
@@ -116,7 +116,7 @@ describe("dynamoStream", () => {
             await handler(modifyEvent);
             expect(dynamoPutSpy).not.toBeCalledWith();
             expect(queryUnbookedmarkEventsSpy).not.toBeCalledWith();
-            expect(getpipelineItemSpy).not.toBeCalledWith();
+            expect(getApplicationItemSpy).not.toBeCalledWith();
         });
 
         it("should not make any api calls when event is Remove", async () => {
@@ -129,7 +129,7 @@ describe("dynamoStream", () => {
             await handler(removeEvent);
             expect(dynamoPutSpy).not.toBeCalledWith();
             expect(queryUnbookedmarkEventsSpy).not.toBeCalledWith();
-            expect(getpipelineItemSpy).not.toBeCalledWith();
+            expect(getApplicationItemSpy).not.toBeCalledWith();
         });
     });
 });
@@ -138,7 +138,7 @@ function setup() {
     cloudWatchMetricSpy = jest.fn().mockReturnValue({});
     queryUnbookedmarkEventsSpy = jest.spyOn(alarmEventStore, "queryAllUnbookmaredEvents");
     dynamoPutSpy = jest.spyOn(alarmEventStore, "createDbEntry");
-    getpipelineItemSpy = jest.spyOn(alarmEventStore, "getDbEntryById");
+    getApplicationItemSpy = jest.spyOn(alarmEventStore, "getDbEntryById");
     process.env.TABLE_NAME = "EventStore";
     mockCreateDBEntry();
 
@@ -148,7 +148,7 @@ function setup() {
 }
 
 function mockgetPipelineItem(previousScore: number) {
-    getpipelineItemSpy.mockImplementation(
+    getApplicationItemSpy.mockImplementation(
         jest.fn().mockReturnValue({
             score: previousScore,
             id: "flaky-service",
@@ -158,8 +158,8 @@ function mockgetPipelineItem(previousScore: number) {
     );
 }
 
-function mockReturnEmptyPipelineItem() {
-    getpipelineItemSpy.mockImplementation(jest.fn().mockReturnValue({}));
+function mockReturnEmptyApplicationItem() {
+    getApplicationItemSpy.mockImplementation(jest.fn().mockReturnValue({}));
 }
 
 function mockCreateDBEntry() {
