@@ -35,14 +35,14 @@ export async function getDbEntryById(
     ).Item;
 }
 
-export async function queryAllUnbookmaredEvents(pipelineName: string): Promise<DynamoDB.DocumentClient.QueryOutput> {
+export async function queryAllUnbookmaredEvents(appName: string): Promise<DynamoDB.DocumentClient.QueryOutput> {
     const db = new DynamoDB.DocumentClient();
     const queryInput: DynamoDB.DocumentClient.QueryInput = {
         TableName: TABLE_NAME,
-        IndexName: "pipelineName-index",
-        KeyConditionExpression: "pipelineName = :name and bookmarked = :value",
+        IndexName: "appName-index",
+        KeyConditionExpression: "appName = :name and bookmarked = :value",
         ExpressionAttributeValues: {
-            ":name": pipelineName,
+            ":name": appName,
             ":value": "N",
         },
     };
