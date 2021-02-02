@@ -173,7 +173,7 @@ function mockReturn3UnbookedmarkedItems() {
                 {
                     value: 1,
                     bookmarked: "N",
-                    id: "ALARM_flaky",
+                    id: "ALARM_flaky-service",
                     resourceId: "2019-12-30T00:47:41.171+0000",
                     appName: "flaky-service",
                     state: "Alarm",

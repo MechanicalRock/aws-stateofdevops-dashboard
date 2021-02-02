@@ -79,7 +79,7 @@ async function updateApplicationScore(newRecord: any) {
             lastBookmarkedItem: `${sortedList[sortedList.length - 1].id}#${
                 sortedList[sortedList.length - 1].resourceId
             }`,
-        };
+        };   
         await createDbEntry(payload);
         // update the list with removing the bookmark key therefore removing them from GSI (sparse GSI)
         for (let i = 0; i < sortedList.length; i++) {
