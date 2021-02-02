@@ -53,7 +53,7 @@ describe("dynamoStream", () => {
         it("should calculate the total score when there is a previouse score stored in dynamo", async () => {
             mockReturn3UnbookedmarkedItems();
             const previousScore = 2;
-            mockgetPipelineItem(previousScore);
+            mockgetApplicationItem(previousScore);
             await handler(dynamoMockStreamEvent);
             const expected = {
                 score: 3,
@@ -82,7 +82,7 @@ describe("dynamoStream", () => {
         it("should no store anything in dynamo when there are no unbookmarked item", async () => {
             mockReturn0UnbookedmarkedItem();
             const previousScore = 2;
-            mockgetPipelineItem(previousScore);
+            mockgetApplicationItem(previousScore);
             await handler(dynamoMockStreamEvent);
             expect(dynamoPutSpy).not.toBeCalledWith();
         });
@@ -90,17 +90,17 @@ describe("dynamoStream", () => {
 
     describe("Application_Attribute item", () => {
         it("Insert event- should put metrics using the incoming score", async () => {
-            const pipelineEvent: DynamoDBStreamEvent = { ...dynamoMockStreamEvent };
-            pipelineEvent.Records[0].dynamodb = mockPipelineItemDynamoObject;
-            await handler(pipelineEvent);
+            const applicationEvent: DynamoDBStreamEvent = { ...dynamoMockStreamEvent };
+            applicationEvent.Records[0].dynamodb = mockApplicationItemDynamoObject;
+            await handler(applicationEvent);
             expect(cloudWatchMetricSpy).toBeCalled();
         });
 
         it("Modify event- should put metrics using the incoming score", async () => {
-            const pipelineEvent: DynamoDBStreamEvent = { ...dynamoMockStreamEvent };
-            pipelineEvent.Records[0].dynamodb = mockPipelineItemDynamoObject;
-            pipelineEvent.Records[0].eventName = "MODIFY";
-            await handler(pipelineEvent);
+            const applicationEvent: DynamoDBStreamEvent = { ...dynamoMockStreamEvent };
+            applicationEvent.Records[0].dynamodb = mockApplicationItemDynamoObject;
+            applicationEvent.Records[0].eventName = "MODIFY";
+            await handler(applicationEvent);
             expect(cloudWatchMetricSpy).toBeCalled();
         });
     });
@@ -112,7 +112,7 @@ describe("dynamoStream", () => {
 
             mockReturn0UnbookedmarkedItem();
             const previousScore = 2;
-            mockgetPipelineItem(previousScore);
+            mockgetApplicationItem(previousScore);
             await handler(modifyEvent);
             expect(dynamoPutSpy).not.toBeCalledWith();
             expect(queryUnbookedmarkEventsSpy).not.toBeCalledWith();
@@ -125,7 +125,7 @@ describe("dynamoStream", () => {
 
             mockReturn0UnbookedmarkedItem();
             const previousScore = 2;
-            mockgetPipelineItem(previousScore);
+            mockgetApplicationItem(previousScore);
             await handler(removeEvent);
             expect(dynamoPutSpy).not.toBeCalledWith();
             expect(queryUnbookedmarkEventsSpy).not.toBeCalledWith();
@@ -147,7 +147,7 @@ function setup() {
     });
 }
 
-function mockgetPipelineItem(previousScore: number) {
+function mockgetApplicationItem(previousScore: number) {
     getApplicationItemSpy.mockImplementation(
         jest.fn().mockReturnValue({
             score: previousScore,
@@ -211,7 +211,7 @@ function mockReturn0UnbookedmarkedItem() {
     );
 }
 
-const mockPipelineItemDynamoObject = {
+const mockApplicationItemDynamoObject = {
     ApproximateCreationDateTime: 1570668037,
     Keys: {
         resourceId: {
