@@ -15,7 +15,7 @@
   "author": "zainab.maleki@mechanicalrock.io",
   "license": "ISC",
   "dependencies": {
-    "@babel/runtime": "^7.10.2",
+    "@babel/runtime": "^7.12.13",
     "@types/jest": "^26.0.15",
     "aws-embedded-metrics": "^1.1.1",
     "aws-sdk": "^2.712.0",
